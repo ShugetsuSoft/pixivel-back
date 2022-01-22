@@ -1,0 +1,36 @@
+syntax = "proto3";
+option go_package = ".;pb";
+package neardbv2.pb;
+
+service NearDBService {
+  rpc Add (AddRequest) returns (NoneResponse) {}
+  rpc Query (QueryRequest) returns (QueryResponse) {}
+  rpc Remove (RemoveRequest) returns (NoneResponse) {}
+}
+
+message AddRequest {
+  uint64 id = 1;
+  repeated string taglist = 2;
+}
+
+message RemoveRequest {
+  uint64 id = 3;
+}
+
+message NoneResponse {
+}
+
+message QueryRequest {
+  repeated string taglist = 4;
+  int64 k = 5;
+  double drift = 6;
+}
+
+message Item {
+  uint64 id = 8;
+  float distance = 9;
+}
+
+message QueryResponse {
+  repeated Item items = 10;
+}
