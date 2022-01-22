@@ -21,7 +21,7 @@ jobs:
     - name: Publish
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "./dist"
+        artifacts: "./dist/*"
         commit: "main"
         tag: "test2"
         token: ${{ secrets.GITHUB_TOKEN }}
