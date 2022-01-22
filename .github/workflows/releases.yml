@@ -16,11 +16,12 @@ jobs:
         go-version: 1.17
 
     - name: Build
-      run: go build -o dist/ responser.go & go build -o dist/ spider.go & go build -o dist/ storer.go & go build -o dist/ tasks.go & ls & ls ./dist
-
-    - uses: ncipollo/release-action@v1
+      run: go build -o dist/ responser.go & go build -o dist/ spider.go & go build -o dist/ storer.go & go build -o dist/ tasks.go
+      
+    - name: Publish
+      uses: ncipollo/release-action@v1
       with:
-        artifacts: "./dist/*"
+        artifacts: "./dist"
         commit: "main"
         tag: "test2"
         token: ${{ secrets.GITHUB_TOKEN }}
