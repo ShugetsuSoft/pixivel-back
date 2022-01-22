@@ -17,11 +17,12 @@ jobs:
 
     - name: Build
       run: go build -o dist/ responser.go & go build -o dist/ spider.go & go build -o dist/ storer.go & go build -o dist/ tasks.go
+      run: ls
+      run: ls ./dist
 
-    - uses: actions/checkout@v2
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "dist/*"
+        artifacts: "./dist/*"
         commit: "main"
-        tag: "test"
+        tag: "test2"
         token: ${{ secrets.GITHUB_TOKEN }}
