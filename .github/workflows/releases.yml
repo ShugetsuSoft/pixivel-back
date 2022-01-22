@@ -2,7 +2,9 @@ name: Build&Release
 
 on:
   push:
-    branches: [ main ]
+    tags:
+    - 'v*'
+    - '*-rc'
 
 jobs:
   build:
@@ -23,5 +25,4 @@ jobs:
       with:
         artifacts: "./dist/*"
         commit: "main"
-        tag: "test3"
         token: ${{ secrets.GITHUB_TOKEN }}
