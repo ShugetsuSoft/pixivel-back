@@ -18,7 +18,7 @@ type Responser struct {
 func NewResponser(addr string, dbops *operations.DatabaseOperations, mq models.MessageQueue, taskchaname string, retrys uint, tracer *tasktracer.TaskTracer, redis *drivers.RedisPool, debug bool) *Responser {
 	app := gin.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://beta.pixivel.moe", "http://localhost:8081"},
+		AllowOrigins:     []string{"https://pixivel.moe", "https://beta.pixivel.moe"},
 		AllowMethods:     []string{"GET", "POST"},
 		AllowHeaders:     []string{"Origin"},
 		ExposeHeaders:    []string{"Content-Length"},

@@ -4,6 +4,7 @@ import (
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"log"
 	"sync"
 )
 

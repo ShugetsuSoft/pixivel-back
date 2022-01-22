@@ -4,6 +4,7 @@ import (
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
+	"log"
 )
 
 type TaskQueue struct {
