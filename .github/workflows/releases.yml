@@ -23,5 +23,5 @@ jobs:
       with:
         artifacts: "./dist/*"
         commit: "main"
-        tag: "test2"
+        tag: "test3"
         token: ${{ secrets.GITHUB_TOKEN }}
