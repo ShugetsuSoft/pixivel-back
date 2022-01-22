@@ -16,9 +16,7 @@ jobs:
         go-version: 1.17
 
     - name: Build
-      run: go build -o dist/ responser.go & go build -o dist/ spider.go & go build -o dist/ storer.go & go build -o dist/ tasks.go
-      run: ls
-      run: ls ./dist
+      run: go build -o dist/ responser.go & go build -o dist/ spider.go & go build -o dist/ storer.go & go build -o dist/ tasks.go & ls & ls ./dist
 
     - uses: ncipollo/release-action@v1
       with:
