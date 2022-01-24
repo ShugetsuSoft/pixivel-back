@@ -456,6 +456,10 @@ func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
 
 	for i := 0; i < maxpage; i++ {
 		pagenow := illusts[limit*i : limit*(i+1)]
+		if len(illusts) < limit*(i+2) {
+			err = r.cache.Set("illust-recommend", convert.Illusts2IllustsResponse(pagenow, false), 60*60*2, utils.Itoa(id), utils.Itoa(page))
+			break
+		}
 		err = r.cache.Set("illust-recommend", convert.Illusts2IllustsResponse(pagenow, i < maxpage-1), 60*60*2, utils.Itoa(id), utils.Itoa(page))
 		if err != nil {
 			telemetry.Log(telemetry.Label{"pos": "cache"}, err.Error())

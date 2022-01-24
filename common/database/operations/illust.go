@@ -148,23 +148,23 @@ func (ops *DatabaseOperations) RecommendIllustsByIllustId(illustId uint64, k int
 		queryidlist = append(queryidlist, item.Id)
 	}
 
-	illusts, err := ops.QueryIllusts(queryidlist, options.Find().SetSort(bson.D{{"popularity", "-1"}}), resultbanned)
+	illusts, err := ops.QueryIllusts(queryidlist, resultbanned)
 	if err != nil {
 		return nil, err
 	}
-	/*
-		illustsmap := make(map[uint64]models.Illust)
-		for _, illust := range illusts {
-			illustsmap[illust.ID] = illust
-		}
 
-		res := make([]models.Illust, 0, len(items))
-		for _, illustid := range queryidlist {
-			if _, exist := illustsmap[illustid]; exist {
-				res = append(res, illustsmap[illustid])
-			}
+	illustsmap := make(map[uint64]models.Illust)
+	for _, illust := range illusts {
+		illustsmap[illust.ID] = illust
+	}
+
+	res := make([]models.Illust, 0, len(items))
+	for _, illustid := range queryidlist {
+		if _, exist := illustsmap[illustid]; exist {
+			res = append(res, illustsmap[illustid])
 		}
-	*/
+	}
+
 	return illusts, nil
 }
 
@@ -199,7 +199,7 @@ func (ops *DatabaseOperations) QueryIllust(illustId uint64, resultbanned bool) (
 	return nil, nil
 }
 
-func (ops *DatabaseOperations) QueryIllusts(illustIds []uint64, findopts *options.FindOptions, resultbanned bool) ([]models.Illust, error) {
+func (ops *DatabaseOperations) QueryIllusts(illustIds []uint64, resultbanned bool) ([]models.Illust, error) {
 	query := bson.M{
 		"_id":    bson.M{"$in": illustIds},
 		"banned": false,
@@ -207,7 +207,7 @@ func (ops *DatabaseOperations) QueryIllusts(illustIds []uint64, findopts *option
 	if resultbanned {
 		query["banned"] = true
 	}
-	cursor, err := ops.Cols.Illust.Find(ops.Ctx, query, findopts)
+	cursor, err := ops.Cols.Illust.Find(ops.Ctx, query)
 	defer cursor.Close(ops.Ctx)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -329,7 +329,7 @@ func (ops *DatabaseOperations) SearchIllust(keyword string, page int, limit int,
 			}
 		}
 
-		illusts, err := ops.QueryIllusts(illustids, nil, resultbanned)
+		illusts, err := ops.QueryIllusts(illustids, resultbanned)
 		if err != nil {
 			return nil, 0, nil, nil, err
 		}
