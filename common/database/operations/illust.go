@@ -165,7 +165,7 @@ func (ops *DatabaseOperations) RecommendIllustsByIllustId(illustId uint64, k int
 		}
 	}
 
-	return illusts, nil
+	return res, nil
 }
 
 func (ops *DatabaseOperations) QueryIllust(illustId uint64, resultbanned bool) (*models.Illust, error) {
