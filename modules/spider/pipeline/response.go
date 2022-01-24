@@ -65,7 +65,7 @@ func (pipe *Pipeline) Error(r *colly.Response, taskq *scheduler.TaskQueue) {
 					taskq.Resend(task, priority)
 				} else {
 					telemetry.SpiderErrorTaskCount.Inc()
-					pipe.Send(task.Group, models.CrawlError, nil, priority, taskq)
+					pipe.Send(task.Group, models.CrawlError, utils.StringOut(r.Body), priority, taskq)
 				}
 			}
 		}
