@@ -10,13 +10,13 @@ import (
 var (
 	RequestsCount = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "total_requests_count",
-	}, []string{})
+	}, []string{"handler"})
 	RequestsHitCache = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "requests_cache_hit_count",
 	})
 	RequestsErrorCount = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "requests_error_count",
-	}, []string{})
+	}, []string{"handler"})
 
 	SpiderTaskCount = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "spider_task_count",
