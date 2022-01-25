@@ -131,6 +131,20 @@ func (ops *DatabaseOperations) RecommendIllustsByIllustId(illustId uint64, k int
 	if err != nil {
 		return nil, err
 	}
+	if len(items) < 1 {
+		illust, err := ops.QueryIllust(illustId, resultbanned)
+		if err != nil {
+			return nil, err
+		}
+		tags := make([]string, len(illust.Tags))
+		for i, tag := range illust.Tags {
+			tags[i] = tag.Name
+		}
+		items, err = ops.Sc.ndb.Query(tags, k, drif)
+		if err != nil {
+			return nil, err
+		}
+	}
 	queryidlist := make([]uint64, 0, len(items))
 	for _, item := range items {
 		if item.Id == illustId {
