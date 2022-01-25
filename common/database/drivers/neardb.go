@@ -41,3 +41,12 @@ func (near *NearDB) Query(set []string, k int, drif float64) ([]*pb.Item, error)
 	})
 	return items.GetItems(), err
 }
+
+func (near *NearDB) QueryById(id uint64, k int, drif float64) ([]*pb.Item, error) {
+	items, err := near.Client.QueryById(near.ctx, &pb.QueryByIdRequest{
+		Id:    id,
+		K:     int64(k),
+		Drift: drif,
+	})
+	return items.GetItems(), err
+}

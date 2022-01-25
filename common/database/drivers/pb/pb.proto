@@ -5,6 +5,7 @@ package neardbv2.pb;
 service NearDBService {
   rpc Add (AddRequest) returns (NoneResponse) {}
   rpc Query (QueryRequest) returns (QueryResponse) {}
+  rpc QueryById (QueryByIdRequest)  returns (QueryResponse) {}
   rpc Remove (RemoveRequest) returns (NoneResponse) {}
 }
 
@@ -33,4 +34,10 @@ message Item {
 
 message QueryResponse {
   repeated Item items = 10;
+}
+
+message QueryByIdRequest {
+  uint64 id = 11;
+  int64 k = 12;
+  double drift = 13;
 }

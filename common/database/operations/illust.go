@@ -127,16 +127,7 @@ func (ops *DatabaseOperations) InsertIllustTagNearDB(illust *models.Illust) erro
 }
 
 func (ops *DatabaseOperations) RecommendIllustsByIllustId(illustId uint64, k int, drif float64, resultbanned bool) ([]models.Illust, error) {
-	illust, err := ops.QueryIllust(illustId, resultbanned)
-	if err != nil {
-		return nil, err
-	}
-	tags := make([]string, len(illust.Tags))
-	for i, tag := range illust.Tags {
-		tags[i] = tag.Name
-	}
-
-	items, err := ops.Sc.ndb.Query(tags, k, drif)
+	items, err := ops.Sc.ndb.QueryById(illustId, k, drif)
 	if err != nil {
 		return nil, err
 	}
