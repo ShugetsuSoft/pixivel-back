@@ -27,6 +27,10 @@ func (ops *DatabaseOperations) InsertUser(user *models.User) error {
 		_, err = ops.Cols.User.InsertOne(ops.Ctx, user)
 
 		if mongo.IsDuplicateKeyError(err) {
+			_, err = ops.Flt.Add(config.UserTableName, utils.Itoa(user.ID))
+			if err != nil {
+				return err
+			}
 			goto REPLACE
 		}
 

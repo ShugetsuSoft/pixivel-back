@@ -27,6 +27,10 @@ func (ops *DatabaseOperations) InsertIllust(illust *models.Illust) error {
 		_, err = ops.Cols.Illust.InsertOne(ops.Ctx, illust)
 
 		if mongo.IsDuplicateKeyError(err) {
+			_, err = ops.Flt.Add(config.IllustTableName, utils.Itoa(illust.ID))
+			if err != nil {
+				return err
+			}
 			goto REPLACE
 		}
 

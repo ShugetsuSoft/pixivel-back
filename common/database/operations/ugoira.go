@@ -23,6 +23,10 @@ func (ops *DatabaseOperations) InsertUgoira(ugoira *models.Ugoira) error {
 		_, err = ops.Cols.Ugoira.InsertOne(ops.Ctx, ugoira)
 
 		if mongo.IsDuplicateKeyError(err) {
+			_, err = ops.Flt.Add(config.UgoiraTableName, utils.Itoa(ugoira.ID))
+			if err != nil {
+				return err
+			}
 			goto REPLACE
 		}
 
