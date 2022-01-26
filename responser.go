@@ -54,7 +54,7 @@ func main() {
 	cacheRedis := modules.NewRD(conf.Redis.CacheRedis.URI)
 	messageRedis := modules.NewRD(conf.Redis.MessageRedis.URI)
 
-	ft := messageRedis.NewCuckooFilter(config.DatabaseName)
+	ft := messageRedis.NewBloomFilter(config.DatabaseName)
 
 	ope := operations.NewDatabaseOperations(ctx, db, ft, es, ndb)
 

@@ -234,8 +234,6 @@ func (ops *DatabaseOperations) DeleteUser(userId uint64) error {
 			return err
 		}
 
-		_, err = ops.Flt.Del(config.UserTableName, utils.Itoa(userId))
-
 		return err
 	}
 

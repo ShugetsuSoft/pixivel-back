@@ -11,5 +11,4 @@ type MessageQueue interface {
 type Filter interface {
 	Add(string, string) (bool, error)
 	Exists(string, string) (bool, error)
-	Del(string, string) (bool, error)
 }

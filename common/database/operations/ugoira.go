@@ -99,9 +99,7 @@ func (ops *DatabaseOperations) DeleteUgoira(ugoiraId uint64) error {
 			}
 			return err
 		}
-
-		_, err = ops.Flt.Del(config.UgoiraTableName, utils.Itoa(ugoiraId))
-
+		
 		return err
 	}
 

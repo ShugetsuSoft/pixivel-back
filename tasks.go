@@ -45,7 +45,7 @@ func main() {
 	messageRedis := modules.NewRD(conf.Redis.MessageRedis.URI)
 	tracer := tasktracer.NewTaskTracer(messageRedis, config.TaskTracerChannel)
 
-	ft := messageRedis.NewCuckooFilter(config.DatabaseName)
+	ft := messageRedis.NewBloomFilter(config.DatabaseName)
 	ope := operations.NewDatabaseOperations(ctx, db, ft, es, ndb)
 
 	taskgen := task.NewTaskGenerator(mq, config.CrawlTaskQueue, conf.General.SpiderRetry, tracer)

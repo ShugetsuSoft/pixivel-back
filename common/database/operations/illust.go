@@ -449,9 +449,6 @@ func (ops *DatabaseOperations) DeleteIllust(illustId uint64) error {
 			}
 			return err
 		}
-
-		_, err = ops.Flt.Del(config.IllustTableName, utils.Itoa(illustId))
-
 		return err
 	}
 

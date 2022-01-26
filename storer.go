@@ -55,7 +55,7 @@ func main() {
 
 	messageRedis := modules.NewRD(conf.Redis.MessageRedis.URI)
 	tracer := tasktracer.NewTaskTracer(messageRedis, config.TaskTracerChannel)
-	ft := messageRedis.NewCuckooFilter(config.DatabaseName)
+	ft := messageRedis.NewBloomFilter(config.DatabaseName)
 
 	switch runType {
 	case 0:
