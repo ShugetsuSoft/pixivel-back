@@ -49,6 +49,10 @@ REPLACE:
 	}
 	if result.MatchedCount == 0 {
 		_, err = ops.Cols.User.InsertOne(ops.Ctx, user)
+		if err != nil {
+			return err
+		}
+		_, err = ops.Flt.Add(config.UserTableName, utils.Itoa(user.ID))
 	}
 
 	return err

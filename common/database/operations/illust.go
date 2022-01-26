@@ -49,6 +49,10 @@ REPLACE:
 	}
 	if result.MatchedCount == 0 {
 		_, err = ops.Cols.Illust.InsertOne(ops.Ctx, illust)
+		if err != nil {
+			return err
+		}
+		_, err = ops.Flt.Add(config.IllustTableName, utils.Itoa(illust.ID))
 	}
 
 	return err

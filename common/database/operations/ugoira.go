@@ -45,6 +45,10 @@ REPLACE:
 	}
 	if result.MatchedCount == 0 {
 		_, err = ops.Cols.Ugoira.InsertOne(ops.Ctx, ugoira)
+		if err != nil {
+			return err
+		}
+		_, err = ops.Flt.Add(config.UgoiraTableName, utils.Itoa(ugoira.ID))
 	}
 
 	return err
@@ -99,7 +103,7 @@ func (ops *DatabaseOperations) DeleteUgoira(ugoiraId uint64) error {
 			}
 			return err
 		}
-		
+
 		return err
 	}
 
