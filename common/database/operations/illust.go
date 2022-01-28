@@ -148,7 +148,11 @@ func (ops *DatabaseOperations) RecommendIllustsByIllustId(illustId uint64, k int
 		for i, tag := range illust.Tags {
 			tags[i] = tag.Name
 		}
-		items, err = ops.Sc.ndb.Query(tags, k, drif)
+		err = ops.Sc.ndb.Add(illust.ID, tags)
+		if err != nil {
+			return nil, err
+		}
+		items, err = ops.Sc.ndb.QueryById(illustId, k, drif)
 		if err != nil {
 			return nil, err
 		}
