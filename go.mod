@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/PuerkitoBio/goquery v1.7.1 // indirect
 	github.com/RedisBloom/redisbloom-go v1.0.0
-	github.com/ShugetsuSoft/loki-client-go v0.0.0-20220122062854-8cfb0cca9636 // indirect
+	github.com/ShugetsuSoft/loki-client-go v0.0.0-20220122062854-8cfb0cca9636
 	github.com/antchfx/htmlquery v1.2.3 // indirect
 	github.com/antchfx/xmlquery v1.3.6 // indirect
 	github.com/gin-contrib/cors v1.3.1

@@ -1,11 +1,12 @@
 package drivers
 
 import (
+	"log"
+	"sync"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
-	"sync"
 )
 
 type RabbitMQ struct {
@@ -27,6 +28,7 @@ func NewRabbitMQ(uri string) (*RabbitMQ, error) {
 		}
 		rbmq.conn = conn
 		ch, err := conn.Channel()
+		ch.Qos(100, 0, false)
 		if err != nil {
 			return nil, err
 		}
@@ -126,6 +128,7 @@ func (mq *RabbitMQ) Consume(name string) (<-chan models.MQMessage, error) {
 		mq.reconnectsignal.Wait()
 	}
 	mq.reconnectsignal.L.Unlock()
+
 	oniichan, err := mq.chann.Consume(
 		name,
 		"",
