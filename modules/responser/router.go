@@ -517,6 +517,11 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 		return
 	}
 
+	if page == 0 && illusts.HasNext == false {
+		c.JSON(400, fail("No More Info"))
+		return
+	}
+
 	c.JSON(200, success(illusts))
 }
 

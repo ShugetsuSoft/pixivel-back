@@ -241,11 +241,6 @@ func (st *Storer) handleElasticSearch(dataq *source.DataQueue) error {
 				return err
 			}
 
-			err = st.ops.InsertIllustTagNearDB(&resdata)
-			if err != nil {
-				return err
-			}
-
 			err = dataq.Ack(tag)
 			if err != nil {
 				return err

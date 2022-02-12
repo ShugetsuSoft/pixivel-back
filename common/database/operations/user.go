@@ -172,12 +172,14 @@ func (ops *DatabaseOperations) SearchUserSuggest(keyword string) ([]string, erro
 func (ops *DatabaseOperations) SearchUser(keyword string, page int, limit int, resultbanned bool) ([]models.User, int64, []float64, []*string, error) {
 	query := ops.Sc.es.Search(config.UserSearchIndexName).
 		Query(ops.Sc.es.BoolQuery().
-			Should(ops.Sc.es.Query("name", keyword).Boost(3)).
+			Should(ops.Sc.es.Query("name", keyword).Boost(2)).
 			Should(ops.Sc.es.Query("bio", keyword).Boost(1)),
 		).
 		Size(limit).From(page * limit).
 		Highlight(elastic.NewHighlight().Field("name")).
-		FetchSourceContext(elastic.NewFetchSourceContext(true).Include("_id"))
+		FetchSourceContext(elastic.NewFetchSourceContext(true).Include("_id")).TrackScores(true)
+
+	query = query.Sort("_score", false).MinScore(2)
 
 	results, err := ops.Sc.es.DoSearch(query)
 	if err != nil {
