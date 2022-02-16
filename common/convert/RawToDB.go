@@ -8,10 +8,29 @@ import (
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 )
 
+var banTagList = map[string]bool{
+	"+18":  true,
+	"nude": true,
+	"r18":  true,
+	"r-18": true,
+}
+
 func ParseImgTime(url string) time.Time {
 	date_str := url[strings.Index(url, "/img/")+5 : strings.LastIndex(url, "/")]
 	t, _ := time.Parse("2006/01/02/15/04/05", date_str)
 	return t
+}
+
+func IsIllustBanned(raw *models.IllustRaw) bool {
+	if raw.XRestrict == 1 {
+		return true
+	}
+	for i := 0; i < len(raw.Tags.Tags); i++ {
+		if _, is := banTagList[strings.ToLower(raw.Tags.Tags[i].Tag)]; is {
+			return true
+		}
+	}
+	return false
 }
 
 func IllustRaw2Illust(raw *models.IllustRaw) *models.Illust {
@@ -21,10 +40,6 @@ func IllustRaw2Illust(raw *models.IllustRaw) *models.Illust {
 			Name:        raw.Tags.Tags[i].Tag,
 			Translation: raw.Tags.Tags[i].Translation.En,
 		}
-	}
-	banned := false
-	if raw.XRestrict == 1 {
-		banned = true
 	}
 	sta := models.IllustStatistic{
 		Bookmarks: raw.BookmarkCount,
@@ -49,7 +64,7 @@ func IllustRaw2Illust(raw *models.IllustRaw) *models.Illust {
 		Popularity:  CalcIllustPop(sta),
 		Statistic:   sta,
 		Image:       ParseImgTime(raw.Urls.Original),
-		Banned:      banned,
+		Banned:      IsIllustBanned(raw),
 	}
 }
 
