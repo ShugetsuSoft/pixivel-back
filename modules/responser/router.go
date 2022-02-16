@@ -235,6 +235,10 @@ func (r *Router) SearchIllustHandler(c *gin.Context) {
 	illusts, err := r.reader.SearchIllustsResponse(keyword, int(page), int(limit), sortpop, sortdate)
 
 	if err != nil {
+		if err == models.ErrorNoResult {
+			c.JSON(200, r.Fail(err))
+			return
+		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-illust"}).Inc()
 		c.JSON(500, r.Fail(err))
 		return
@@ -253,6 +257,10 @@ func (r *Router) SearchIllustSuggestHandler(c *gin.Context) {
 	suggests, err := r.reader.SearchIllustsSuggestResponse(keyword)
 
 	if err != nil {
+		if err == models.ErrorNoResult {
+			c.JSON(200, r.Fail(err))
+			return
+		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-illust-suggest"}).Inc()
 		c.JSON(500, r.Fail(err))
 		return
@@ -281,6 +289,10 @@ func (r *Router) SearchUserHandler(c *gin.Context) {
 	users, err := r.reader.SearchUsersResponse(keyword, int(page), int(limit))
 
 	if err != nil {
+		if err == models.ErrorNoResult {
+			c.JSON(200, r.Fail(err))
+			return
+		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-user"}).Inc()
 		c.JSON(500, r.Fail(err))
 		return
@@ -299,6 +311,10 @@ func (r *Router) SearchUserSuggestHandler(c *gin.Context) {
 	suggests, err := r.reader.SearchUsersSuggestResponse(keyword)
 
 	if err != nil {
+		if err == models.ErrorNoResult {
+			c.JSON(200, r.Fail(err))
+			return
+		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-user-suggest"}).Inc()
 		c.JSON(500, r.Fail(err))
 		return
@@ -317,6 +333,10 @@ func (r *Router) SearchTagSuggestHandler(c *gin.Context) {
 	suggests, err := r.reader.SearchTagsSuggestResponse(keyword)
 
 	if err != nil {
+		if err == models.ErrorNoResult {
+			c.JSON(200, r.Fail(err))
+			return
+		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-tag-suggest"}).Inc()
 		c.JSON(500, r.Fail(err))
 		return
@@ -378,6 +398,10 @@ func (r *Router) SearchIllustByTagHandler(c *gin.Context) {
 	illusts, err := r.reader.SearchIllustsByTagsResponse(musttags, shouldtags, perfectmatch, int(page), int(limit), sortpop, sortdate)
 
 	if err != nil {
+		if err == models.ErrorNoResult {
+			c.JSON(200, r.Fail(err))
+			return
+		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-illust-by-tag"}).Inc()
 		c.JSON(500, r.Fail(err))
 		return
@@ -449,6 +473,10 @@ func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
 	illusts, err := r.reader.RecommendIllustsByIllustId(id, limit*maxpage)
 
 	if err != nil {
+		if err == models.ErrorNoResult {
+			c.JSON(200, r.Fail(err))
+			return
+		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "illust-recommend"}).Inc()
 		c.JSON(500, r.Fail(err))
 		return
@@ -512,6 +540,10 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 	illusts, err := r.reader.RankIllustsResponse(mode, date, int(page), content, limit)
 
 	if err != nil {
+		if err == models.ErrorNoResult {
+			c.JSON(200, r.Fail(err))
+			return
+		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "rank"}).Inc()
 		c.JSON(500, r.Fail(err))
 		return
@@ -527,16 +559,21 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 
 func (r *Router) GetSampleIllustsHandler(c *gin.Context) {
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "sample-illusts"}).Inc()
-	limit := utils.Atoi(c.Query("limit"))
-	if limit > 80 || limit < 1 {
-		limit = 50
+	page := utils.Atoi(c.Query("p"))
+	if page > 20 || page < 0 {
+		page = 0
 	}
 
-	quality := utils.Atoi(c.Query("quality"))
-	if quality < 1 {
-		quality = 15000
+	cached, err := r.cache.Get("illust-sample", utils.Itoa(page))
+	if err != nil {
+		telemetry.Log(telemetry.Label{"pos": "cache"}, err.Error())
 	}
-	illusts, err := r.reader.SampleIllustsResponse(int(quality), int(limit))
+	if cached != nil {
+		c.JSON(200, success(cached))
+		return
+	}
+
+	illusts, err := r.reader.SampleIllustsResponse(15000, 50)
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "sample-illusts"}).Inc()
@@ -544,22 +581,41 @@ func (r *Router) GetSampleIllustsHandler(c *gin.Context) {
 		return
 	}
 
+	err = r.cache.Set("illust-sample", illusts, 60*60*6, utils.Itoa(page))
+	if err != nil {
+		telemetry.Log(telemetry.Label{"pos": "cache"}, err.Error())
+	}
+
 	c.JSON(200, success(illusts))
 }
 
 func (r *Router) GetSampleUsersHandler(c *gin.Context) {
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "sample-users"}).Inc()
-	limit := utils.Atoi(c.Query("limit"))
-	if limit > 80 || limit < 1 {
-		limit = 50
+	page := utils.Atoi(c.Query("p"))
+	if page > 20 || page < 0 {
+		page = 0
 	}
 
-	users, err := r.reader.SampleUsersResponse(int(limit))
+	cached, err := r.cache.Get("user-sample", utils.Itoa(page))
+	if err != nil {
+		telemetry.Log(telemetry.Label{"pos": "cache"}, err.Error())
+	}
+	if cached != nil {
+		c.JSON(200, success(cached))
+		return
+	}
+
+	users, err := r.reader.SampleUsersResponse(50)
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "sample-users"}).Inc()
 		c.JSON(500, r.Fail(err))
 		return
+	}
+
+	err = r.cache.Set("user-sample", users, 60*60*6, utils.Itoa(page))
+	if err != nil {
+		telemetry.Log(telemetry.Label{"pos": "cache"}, err.Error())
 	}
 
 	c.JSON(200, success(users))
