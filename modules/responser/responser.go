@@ -1,13 +1,15 @@
 package responser
 
 import (
+	"time"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/database/drivers"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/operations"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/tasktracer"
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 type Responser struct {
@@ -25,6 +27,10 @@ func NewResponser(addr string, dbops *operations.DatabaseOperations, mq models.M
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	app.Use(timeout.New(
+		timeout.WithTimeout(time.Minute),
+	))
 
 	router := NewRouter(dbops, mq, taskchaname, retrys, tracer, redis, debug)
 	router.mount(app)
