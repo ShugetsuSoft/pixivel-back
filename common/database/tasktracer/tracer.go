@@ -43,7 +43,7 @@ func (tc *TaskTracer) NewTaskGroup(params map[string]string, tasknum uint) (stri
 	if isexist {
 		return tid, true, nil
 	}
-	err = cli.SetValueExpire(tid, utils.Itoa(tasknum), 60*10)
+	err = cli.SetValueExpire(tid, utils.Itoa(tasknum), 60)
 	if err != nil {
 		return "", false, err
 	}
@@ -161,7 +161,7 @@ func (tl *TaskListener) CloseChan() {
 }
 
 func (tl *TaskListener) WaitFor(tid string) error {
-	timeout := time.After(10 * time.Minute)
+	timeout := time.After(1 * time.Minute)
 	signal := make(chan error, 1)
 	go func() {
 		tl.cond.L.Lock()
