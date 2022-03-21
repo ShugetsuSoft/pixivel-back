@@ -1,19 +1,20 @@
 package task
 
 import (
+	"context"
 	"fmt"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils"
 )
 
 type stringmap map[string]string
 
-func (gen *TaskGenerator) IllustDetailTask(id uint64) error {
+func (gen *TaskGenerator) IllustDetailTask(ctx context.Context, id uint64) error {
 	tid, existed, err := gen.tracer.NewTaskGroup(stringmap{"iid": utils.Itoa(id)}, 1)
 	if err != nil {
 		return err
 	}
-	fmt.Println(id)
 	if !existed {
 		task := models.CrawlTask{
 			Group:      tid,
@@ -27,7 +28,7 @@ func (gen *TaskGenerator) IllustDetailTask(id uint64) error {
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err
@@ -35,7 +36,7 @@ func (gen *TaskGenerator) IllustDetailTask(id uint64) error {
 	return nil
 }
 
-func (gen *TaskGenerator) UgoiraDetailTask(id uint64) error {
+func (gen *TaskGenerator) UgoiraDetailTask(ctx context.Context, id uint64) error {
 	tid, existed, err := gen.tracer.NewTaskGroup(stringmap{"ugid": utils.Itoa(id)}, 1)
 	if err != nil {
 		return err
@@ -54,7 +55,7 @@ func (gen *TaskGenerator) UgoiraDetailTask(id uint64) error {
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err
@@ -62,7 +63,7 @@ func (gen *TaskGenerator) UgoiraDetailTask(id uint64) error {
 	return nil
 }
 
-func (gen *TaskGenerator) UserDetailTask(id uint64) error {
+func (gen *TaskGenerator) UserDetailTask(ctx context.Context, id uint64) error {
 	tid, existed, err := gen.tracer.NewTaskGroup(stringmap{"uid": utils.Itoa(id)}, 1)
 	if err != nil {
 		return err
@@ -81,7 +82,7 @@ func (gen *TaskGenerator) UserDetailTask(id uint64) error {
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err
@@ -89,7 +90,7 @@ func (gen *TaskGenerator) UserDetailTask(id uint64) error {
 	return nil
 }
 
-func (gen *TaskGenerator) UserIllustsTask(id uint64) error {
+func (gen *TaskGenerator) UserIllustsTask(ctx context.Context, id uint64) error {
 	tid, existed, err := gen.tracer.NewTaskGroup(stringmap{"uiid": utils.Itoa(id)}, 1)
 	if err != nil {
 		return err
@@ -108,7 +109,7 @@ func (gen *TaskGenerator) UserIllustsTask(id uint64) error {
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err
@@ -116,7 +117,7 @@ func (gen *TaskGenerator) UserIllustsTask(id uint64) error {
 	return nil
 }
 
-func (gen *TaskGenerator) RankInitTask(mode string, date string, content string) error {
+func (gen *TaskGenerator) RankInitTask(ctx context.Context, mode string, date string, content string) error {
 	tid, existed, err := gen.tracer.NewTaskGroup(stringmap{"rtmd": mode, "rtdt": date}, 1)
 	if err != nil {
 		return err
@@ -134,7 +135,7 @@ func (gen *TaskGenerator) RankInitTask(mode string, date string, content string)
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err

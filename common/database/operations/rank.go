@@ -1,19 +1,21 @@
 package operations
 
 import (
+	"context"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (ops *DatabaseOperations) InsertRank(mode string, date string, content string) (bool, error) {
+func (ops *DatabaseOperations) InsertRank(ctx context.Context, mode string, date string, content string) (bool, error) {
 	rank := &models.Rank{
 		Date:    date,
 		Mode:    mode,
 		Content: content,
 		Illusts: []models.RankIllust{},
 	}
-	_, err := ops.Cols.Rank.InsertOne(ops.Ctx, rank)
+	_, err := ops.Cols.Rank.InsertOne(ctx, rank)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
 			return false, nil
@@ -23,7 +25,7 @@ func (ops *DatabaseOperations) InsertRank(mode string, date string, content stri
 	return true, nil
 }
 
-func (ops *DatabaseOperations) AddRankIllusts(mode string, date string, content string, illusts []models.RankIllust) error {
+func (ops *DatabaseOperations) AddRankIllusts(ctx context.Context, mode string, date string, content string, illusts []models.RankIllust) error {
 	filter := bson.M{"date": date, "mode": mode, "content": content}
 	update := bson.M{
 		"$push": bson.M{
@@ -33,11 +35,11 @@ func (ops *DatabaseOperations) AddRankIllusts(mode string, date string, content 
 			},
 		},
 	}
-	_, err := ops.Cols.Rank.UpdateOne(ops.Ctx, filter, update)
+	_, err := ops.Cols.Rank.UpdateOne(ctx, filter, update)
 	return err
 }
 
-func (ops *DatabaseOperations) QueryRankIllusts(mode string, date string, content string, page int, limit int) ([]models.RankAggregateResult, error) {
+func (ops *DatabaseOperations) QueryRankIllusts(ctx context.Context, mode string, date string, content string, page int, limit int) ([]models.RankAggregateResult, error) {
 	pipeline := mongo.Pipeline{
 		{{"$match", bson.D{
 			{"date", date},
@@ -60,18 +62,18 @@ func (ops *DatabaseOperations) QueryRankIllusts(mode string, date string, conten
 			{"_id", 0},
 		}}},
 	}
-	cursor, err := ops.Cols.Rank.Aggregate(ops.Ctx, pipeline)
+	cursor, err := ops.Cols.Rank.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
 	var results []models.RankAggregateResult
-	if err = cursor.All(ops.Ctx, &results); err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		return nil, err
 	}
 	return results, nil
 }
 
-func (ops *DatabaseOperations) GetSampleIllusts(quality int, limit int, resultbanned bool) ([]models.Illust, error) {
+func (ops *DatabaseOperations) GetSampleIllusts(ctx context.Context, quality int, limit int, resultbanned bool) ([]models.Illust, error) {
 	pipeline := mongo.Pipeline{
 		{{"$match", bson.D{
 			{"popularity", bson.D{{"$gt", quality}}},
@@ -82,18 +84,18 @@ func (ops *DatabaseOperations) GetSampleIllusts(quality int, limit int, resultba
 			{"size", limit},
 		}}},
 	}
-	cursor, err := ops.Cols.Illust.Aggregate(ops.Ctx, pipeline)
+	cursor, err := ops.Cols.Illust.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
 	var results []models.Illust
-	if err = cursor.All(ops.Ctx, &results); err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		return nil, err
 	}
 	return results, nil
 }
 
-func (ops *DatabaseOperations) GetSampleUsers(limit int, resultbanned bool) ([]models.User, error) {
+func (ops *DatabaseOperations) GetSampleUsers(ctx context.Context, limit int, resultbanned bool) ([]models.User, error) {
 	pipeline := mongo.Pipeline{
 		{{"$match", bson.D{
 			{"banned", resultbanned},
@@ -102,12 +104,12 @@ func (ops *DatabaseOperations) GetSampleUsers(limit int, resultbanned bool) ([]m
 			{"size", limit},
 		}}},
 	}
-	cursor, err := ops.Cols.User.Aggregate(ops.Ctx, pipeline)
+	cursor, err := ops.Cols.User.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
 	var results []models.User
-	if err = cursor.All(ops.Ctx, &results); err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		return nil, err
 	}
 	return results, nil

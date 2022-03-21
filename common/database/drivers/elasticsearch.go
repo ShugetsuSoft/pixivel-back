@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"context"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	elastic "github.com/olivere/elastic/v7"
 )
@@ -22,13 +23,13 @@ func NewElasticSearchClient(ctx context.Context, uri string, username string, pa
 	}, nil
 }
 
-func (es *ElasticSearch) CreateIndex(name string, mapping string) error {
-	exists, err := es.cli.IndexExists(name).Do(es.ctx)
+func (es *ElasticSearch) CreateIndex(ctx context.Context, name string, mapping string) error {
+	exists, err := es.cli.IndexExists(name).Do(ctx)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		_, err := es.cli.CreateIndex(name).BodyString(mapping).Do(es.ctx)
+		_, err := es.cli.CreateIndex(name).BodyString(mapping).Do(ctx)
 		if err != nil {
 			return err
 		}
@@ -38,31 +39,31 @@ func (es *ElasticSearch) CreateIndex(name string, mapping string) error {
 	return nil
 }
 
-func (es *ElasticSearch) DeleteIndex(name string) error {
-	_, err := es.cli.DeleteIndex(name).Do(es.ctx)
+func (es *ElasticSearch) DeleteIndex(ctx context.Context, name string) error {
+	_, err := es.cli.DeleteIndex(name).Do(ctx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (es *ElasticSearch) InsertDocument(index string, id string, object interface{}) error {
+func (es *ElasticSearch) InsertDocument(ctx context.Context, index string, id string, object interface{}) error {
 	_, err := es.cli.Index().
 		Index(index).
 		Id(id).
 		BodyJson(object).
-		Do(es.ctx)
+		Do(ctx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (es *ElasticSearch) Search(index string) *elastic.SearchService  {
+func (es *ElasticSearch) Search(index string) *elastic.SearchService {
 	return es.cli.Search().Index(index)
 }
 
-func (es *ElasticSearch) MultiSearch() *elastic.MultiSearchService  {
+func (es *ElasticSearch) MultiSearch() *elastic.MultiSearchService {
 	return es.cli.MultiSearch()
 }
 
@@ -86,10 +87,10 @@ func (es *ElasticSearch) BoolQuery() *elastic.BoolQuery {
 	return elastic.NewBoolQuery()
 }
 
-func (es *ElasticSearch) DoSearch(s *elastic.SearchService) (*elastic.SearchResult, error) {
-	return s.Do(es.ctx)
+func (es *ElasticSearch) DoSearch(ctx context.Context, s *elastic.SearchService) (*elastic.SearchResult, error) {
+	return s.Do(ctx)
 }
 
-func (es *ElasticSearch) DoMultiSearch(s *elastic.MultiSearchService) (*elastic.MultiSearchResult, error) {
-	return s.Do(es.ctx)
+func (es *ElasticSearch) DoMultiSearch(ctx context.Context, s *elastic.MultiSearchService) (*elastic.MultiSearchResult, error) {
+	return s.Do(ctx)
 }

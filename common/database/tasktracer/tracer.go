@@ -3,14 +3,15 @@ package tasktracer
 import (
 	"context"
 	"errors"
-	"github.com/ShugetsuSoft/pixivel-back/common/database/drivers"
-	"github.com/ShugetsuSoft/pixivel-back/common/models"
-	"github.com/ShugetsuSoft/pixivel-back/common/utils"
-	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
 	"log"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ShugetsuSoft/pixivel-back/common/database/drivers"
+	"github.com/ShugetsuSoft/pixivel-back/common/models"
+	"github.com/ShugetsuSoft/pixivel-back/common/utils"
+	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
 )
 
 type TaskTracer struct {
@@ -160,7 +161,7 @@ func (tl *TaskListener) CloseChan() {
 	tl.redis.Close()
 }
 
-func (tl *TaskListener) WaitFor(tid string) error {
+func (tl *TaskListener) WaitFor(ctx context.Context, tid string) error {
 	timeout := time.After(1 * time.Minute)
 	signal := make(chan error, 1)
 	go func() {
@@ -182,6 +183,8 @@ func (tl *TaskListener) WaitFor(tid string) error {
 	case err := <-signal:
 		return err
 	case <-timeout:
+		return models.ErrorTimeOut
+	case <-ctx.Done():
 		return models.ErrorTimeOut
 	}
 }

@@ -1,16 +1,17 @@
 package reader
 
 import (
+	"context"
 	"time"
 
 	"github.com/ShugetsuSoft/pixivel-back/common/convert"
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 )
 
-func (r *Reader) IllustResponse(illustId uint64, forcefetch bool) (*models.IllustResponse, error) {
+func (r *Reader) IllustResponse(ctx context.Context, illustId uint64, forcefetch bool) (*models.IllustResponse, error) {
 	retry := 2
 START:
-	illust, err := r.dbops.QueryIllust(illustId, false)
+	illust, err := r.dbops.QueryIllust(ctx, illustId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +20,7 @@ START:
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
-		err = r.gen.IllustDetailTask(illustId)
+		err = r.gen.IllustDetailTask(ctx, illustId)
 		if err != nil {
 			return nil, err
 		}
@@ -28,7 +29,7 @@ START:
 	}
 
 	userId := uint64(illust.User)
-	user, err := r.dbops.QueryUser(userId, false)
+	user, err := r.dbops.QueryUser(ctx, userId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +38,7 @@ START:
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
-		err = r.gen.UserDetailTask(userId)
+		err = r.gen.UserDetailTask(ctx, userId)
 		if err != nil {
 			return nil, err
 		}
@@ -48,10 +49,10 @@ START:
 	return convert.Illust2IllustResponse(illust, user), nil
 }
 
-func (r *Reader) UgoiraResponse(ugoiraId uint64, forcefetch bool) (*models.UgoiraResponse, error) {
+func (r *Reader) UgoiraResponse(ctx context.Context, ugoiraId uint64, forcefetch bool) (*models.UgoiraResponse, error) {
 	retry := 2
 START:
-	ugoira, err := r.dbops.QueryUgoira(ugoiraId)
+	ugoira, err := r.dbops.QueryUgoira(ctx, ugoiraId)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ START:
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
-		err = r.gen.UgoiraDetailTask(ugoiraId)
+		err = r.gen.UgoiraDetailTask(ctx, ugoiraId)
 		if err != nil {
 			return nil, err
 		}
@@ -71,12 +72,12 @@ START:
 	return convert.Ugoira2UgoiraResponse(ugoira), nil
 }
 
-func (r *Reader) IllustsResponse(illustIds []uint64) (*models.IllustsResponse, error) {
+func (r *Reader) IllustsResponse(ctx context.Context, illustIds []uint64) (*models.IllustsResponse, error) {
 	var err error
 	var illust *models.Illust
 	illusts := make([]models.Illust, 0, len(illustIds))
 	for _, i := range illustIds {
-		illust, err = r.dbops.QueryIllust(illustIds[i], false)
+		illust, err = r.dbops.QueryIllust(ctx, illustIds[i], false)
 		if err != nil {
 			return nil, err
 		}
@@ -88,10 +89,10 @@ func (r *Reader) IllustsResponse(illustIds []uint64) (*models.IllustsResponse, e
 	return convert.Illusts2IllustsResponse(illusts, false), nil
 }
 
-func (r *Reader) UserDetailResponse(userId uint64) (*models.UserResponse, error) {
+func (r *Reader) UserDetailResponse(ctx context.Context, userId uint64) (*models.UserResponse, error) {
 	retry := 1
 START:
-	user, err := r.dbops.QueryUser(userId, false)
+	user, err := r.dbops.QueryUser(ctx, userId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +101,7 @@ START:
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
-		err = r.gen.UserDetailTask(userId)
+		err = r.gen.UserDetailTask(ctx, userId)
 		if err != nil {
 			return nil, err
 		}
@@ -111,10 +112,10 @@ START:
 	return convert.User2UserResponse(user), nil
 }
 
-func (r *Reader) UserIllustsResponse(userId uint64, page int64, limit int64) (*models.IllustsResponse, error) {
+func (r *Reader) UserIllustsResponse(ctx context.Context, userId uint64, page int64, limit int64) (*models.IllustsResponse, error) {
 	retry := 2
 START:
-	user, err := r.dbops.QueryUser(userId, false)
+	user, err := r.dbops.QueryUser(ctx, userId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -123,11 +124,11 @@ START:
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
-		err = r.gen.UserDetailTask(userId)
+		err = r.gen.UserDetailTask(ctx, userId)
 		if err != nil {
 			return nil, err
 		}
-		err = r.gen.UserIllustsTask(userId)
+		err = r.gen.UserIllustsTask(ctx, userId)
 		if err != nil {
 			return nil, err
 		}
@@ -139,7 +140,7 @@ START:
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
-		err = r.gen.UserIllustsTask(userId)
+		err = r.gen.UserIllustsTask(ctx, userId)
 		if err != nil {
 			return nil, err
 		}
@@ -147,7 +148,7 @@ START:
 		goto START
 	}
 
-	illusts, err := r.dbops.QueryIllustByUserWithPage(userId, page, limit, false)
+	illusts, err := r.dbops.QueryIllustByUserWithPage(ctx, userId, page, limit, false)
 	if err != nil {
 		return nil, err
 	}
@@ -155,24 +156,24 @@ START:
 	return convert.Illusts2IllustsResponse(illusts, user.IllustsCount > uint(limit*(page+1))), err
 }
 
-func (r *Reader) RankIllustsResponse(mode string, date string, page int, content string, limit int) (*models.IllustsResponse, error) {
-	results, err := r.dbops.QueryRankIllusts(mode, date, content, page, limit)
+func (r *Reader) RankIllustsResponse(ctx context.Context, mode string, date string, page int, content string, limit int) (*models.IllustsResponse, error) {
+	results, err := r.dbops.QueryRankIllusts(ctx, mode, date, content, page, limit)
 	if err != nil {
 		return nil, err
 	}
 	return convert.RankAggregateResult2IllustsResponses(results, page < 9 && len(results) != 0), nil
 }
 
-func (r *Reader) SampleIllustsResponse(quality int, limit int) (*models.IllustsResponse, error) {
-	results, err := r.dbops.GetSampleIllusts(quality, limit, false)
+func (r *Reader) SampleIllustsResponse(ctx context.Context, quality int, limit int) (*models.IllustsResponse, error) {
+	results, err := r.dbops.GetSampleIllusts(ctx, quality, limit, false)
 	if err != nil {
 		return nil, err
 	}
 	return convert.Illusts2IllustsResponse(results, false), nil
 }
 
-func (r *Reader) SampleUsersResponse(limit int) (*models.UsersResponse, error) {
-	results, err := r.dbops.GetSampleUsers(limit, false)
+func (r *Reader) SampleUsersResponse(ctx context.Context, limit int) (*models.UsersResponse, error) {
+	results, err := r.dbops.GetSampleUsers(ctx, limit, false)
 	if err != nil {
 		return nil, err
 	}

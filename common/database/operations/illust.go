@@ -1,7 +1,10 @@
 package operations
 
 import (
+	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/convert"
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils"
@@ -10,10 +13,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 )
 
-func (ops *DatabaseOperations) InsertIllust(illust *models.Illust) error {
+func (ops *DatabaseOperations) InsertIllust(ctx context.Context, illust *models.Illust) error {
 	var err error
 	is, err := ops.Flt.Exists(config.IllustTableName, utils.Itoa(illust.ID))
 	if err != nil {
@@ -24,7 +26,7 @@ func (ops *DatabaseOperations) InsertIllust(illust *models.Illust) error {
 	if is {
 		goto REPLACE
 	} else {
-		_, err = ops.Cols.Illust.InsertOne(ops.Ctx, illust)
+		_, err = ops.Cols.Illust.InsertOne(ctx, illust)
 
 		if mongo.IsDuplicateKeyError(err) {
 			_, err = ops.Flt.Add(config.IllustTableName, utils.Itoa(illust.ID))
@@ -47,12 +49,12 @@ func (ops *DatabaseOperations) InsertIllust(illust *models.Illust) error {
 	return nil
 
 REPLACE:
-	result, err := ops.Cols.Illust.ReplaceOne(ops.Ctx, bson.M{"_id": illust.ID}, illust)
+	result, err := ops.Cols.Illust.ReplaceOne(ctx, bson.M{"_id": illust.ID}, illust)
 	if err != nil {
 		return err
 	}
 	if result.MatchedCount == 0 {
-		_, err = ops.Cols.Illust.InsertOne(ops.Ctx, illust)
+		_, err = ops.Cols.Illust.InsertOne(ctx, illust)
 		if err != nil {
 			return err
 		}
@@ -62,7 +64,7 @@ REPLACE:
 	return err
 }
 
-func (ops *DatabaseOperations) AddIllusts(illusts []models.Illust) error {
+func (ops *DatabaseOperations) AddIllusts(ctx context.Context, illusts []models.Illust) error {
 	operations := make([]mongo.WriteModel, len(illusts))
 	for i, illust := range illusts {
 		ins := mongo.NewInsertOneModel()
@@ -72,11 +74,11 @@ func (ops *DatabaseOperations) AddIllusts(illusts []models.Illust) error {
 	bulkOption := &options.BulkWriteOptions{}
 	bulkOption.SetOrdered(false)
 	bulkOption.SetBypassDocumentValidation(false)
-	_, err := ops.Cols.Illust.BulkWrite(ops.Ctx, operations, bulkOption)
+	_, err := ops.Cols.Illust.BulkWrite(ctx, operations, bulkOption)
 	return err
 }
 
-func (ops *DatabaseOperations) InsertIllusts(illusts []models.Illust) error {
+func (ops *DatabaseOperations) InsertIllusts(ctx context.Context, illusts []models.Illust) error {
 	nowIllusts := make([]interface{}, 0, len(illusts))
 	updateoperations := make([]mongo.WriteModel, 0, len(illusts))
 
@@ -101,7 +103,7 @@ func (ops *DatabaseOperations) InsertIllusts(illusts []models.Illust) error {
 	}
 
 	if len(nowIllusts) > 0 {
-		_, err := ops.Cols.Illust.InsertMany(ops.Ctx, nowIllusts)
+		_, err := ops.Cols.Illust.InsertMany(ctx, nowIllusts)
 		if err != nil {
 			return err
 		}
@@ -111,15 +113,15 @@ func (ops *DatabaseOperations) InsertIllusts(illusts []models.Illust) error {
 		bulkOption := &options.BulkWriteOptions{}
 		bulkOption.SetOrdered(false)
 		bulkOption.SetBypassDocumentValidation(false)
-		_, err := ops.Cols.Illust.BulkWrite(ops.Ctx, updateoperations, bulkOption)
+		_, err := ops.Cols.Illust.BulkWrite(ctx, updateoperations, bulkOption)
 		return err
 	}
 	return nil
 }
 
-func (ops *DatabaseOperations) InsertIllustSearch(illust *models.Illust) error {
+func (ops *DatabaseOperations) InsertIllustSearch(ctx context.Context, illust *models.Illust) error {
 	illustsearch := convert.Illust2IllustSearch(illust)
-	err := ops.Sc.es.InsertDocument(config.IllustSearchIndexName, utils.Itoa(illust.ID), illustsearch)
+	err := ops.Sc.es.InsertDocument(ctx, config.IllustSearchIndexName, utils.Itoa(illust.ID), illustsearch)
 	if err != nil {
 		return err
 	}
@@ -134,13 +136,13 @@ func (ops *DatabaseOperations) InsertIllustTagNearDB(illust *models.Illust) erro
 	return ops.Sc.ndb.Add(illust.ID, tagset)
 }
 
-func (ops *DatabaseOperations) RecommendIllustsByIllustId(illustId uint64, k int, drif float64, resultbanned bool) ([]models.Illust, error) {
+func (ops *DatabaseOperations) RecommendIllustsByIllustId(ctx context.Context, illustId uint64, k int, drif float64, resultbanned bool) ([]models.Illust, error) {
 	items, err := ops.Sc.ndb.QueryById(illustId, k, drif)
 	if err != nil {
 		return nil, err
 	}
 	if len(items) < 1 {
-		illust, err := ops.QueryIllust(illustId, resultbanned)
+		illust, err := ops.QueryIllust(ctx, illustId, resultbanned)
 		if err != nil {
 			return nil, err
 		}
@@ -165,7 +167,7 @@ func (ops *DatabaseOperations) RecommendIllustsByIllustId(illustId uint64, k int
 		queryidlist = append(queryidlist, item.Id)
 	}
 
-	illusts, err := ops.QueryIllusts(queryidlist, resultbanned)
+	illusts, err := ops.QueryIllusts(ctx, queryidlist, resultbanned)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +187,7 @@ func (ops *DatabaseOperations) RecommendIllustsByIllustId(illustId uint64, k int
 	return res, nil
 }
 
-func (ops *DatabaseOperations) QueryIllust(illustId uint64, resultbanned bool) (*models.Illust, error) {
+func (ops *DatabaseOperations) QueryIllust(ctx context.Context, illustId uint64, resultbanned bool) (*models.Illust, error) {
 	is, err := ops.Flt.Exists(config.IllustTableName, utils.Itoa(illustId))
 
 	if err != nil {
@@ -198,7 +200,7 @@ func (ops *DatabaseOperations) QueryIllust(illustId uint64, resultbanned bool) (
 			Tags:      []models.IllustTag{},
 		}
 		query := bson.M{"_id": illustId}
-		err := ops.Cols.Illust.FindOne(ops.Ctx, query).Decode(&result)
+		err := ops.Cols.Illust.FindOne(ctx, query).Decode(&result)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				return nil, nil
@@ -216,7 +218,7 @@ func (ops *DatabaseOperations) QueryIllust(illustId uint64, resultbanned bool) (
 	return nil, nil
 }
 
-func (ops *DatabaseOperations) QueryIllusts(illustIds []uint64, resultbanned bool) ([]models.Illust, error) {
+func (ops *DatabaseOperations) QueryIllusts(ctx context.Context, illustIds []uint64, resultbanned bool) ([]models.Illust, error) {
 	query := bson.M{
 		"_id":    bson.M{"$in": illustIds},
 		"banned": false,
@@ -224,8 +226,8 @@ func (ops *DatabaseOperations) QueryIllusts(illustIds []uint64, resultbanned boo
 	if resultbanned {
 		query["banned"] = true
 	}
-	cursor, err := ops.Cols.Illust.Find(ops.Ctx, query)
-	defer cursor.Close(ops.Ctx)
+	cursor, err := ops.Cols.Illust.Find(ctx, query)
+	defer cursor.Close(ctx)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -236,7 +238,7 @@ func (ops *DatabaseOperations) QueryIllusts(illustIds []uint64, resultbanned boo
 
 	illusts := make([]models.Illust, 0, len(illustIds))
 
-	for cursor.Next(ops.Ctx) {
+	for cursor.Next(ctx) {
 		result := models.Illust{
 			Statistic: models.IllustStatistic{},
 			Tags:      []models.IllustTag{},
@@ -252,7 +254,7 @@ func (ops *DatabaseOperations) QueryIllusts(illustIds []uint64, resultbanned boo
 	return illusts, err
 }
 
-func (ops *DatabaseOperations) SearchIllustSuggest(keyword string) ([]string, error) {
+func (ops *DatabaseOperations) SearchIllustSuggest(ctx context.Context, keyword string) ([]string, error) {
 	source := elastic.NewSearchSource().
 		Suggester(ops.Sc.es.Suggest("title-completion-suggest").Field("title.suggest").Text(keyword).Fuzziness(2).Analyzer("kuromoji").SkipDuplicates(true)).
 		Suggester(ops.Sc.es.Suggest("alt_title-completion-suggest").Field("alt_title.suggest").Text(keyword).Fuzziness(3).Analyzer("kuromoji").SkipDuplicates(true)).
@@ -262,7 +264,7 @@ func (ops *DatabaseOperations) SearchIllustSuggest(keyword string) ([]string, er
 	query := ops.Sc.es.Search(config.IllustSearchIndexName).Source(nil).
 		SearchSource(source)
 
-	results, err := ops.Sc.es.DoSearch(query)
+	results, err := ops.Sc.es.DoSearch(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +280,7 @@ func (ops *DatabaseOperations) SearchIllustSuggest(keyword string) ([]string, er
 	return res, nil
 }
 
-func (ops *DatabaseOperations) SearchTagSuggest(keyword string) ([]models.IllustTag, error) {
+func (ops *DatabaseOperations) SearchTagSuggest(ctx context.Context, keyword string) ([]models.IllustTag, error) {
 	source := elastic.NewSearchSource().
 		Suggester(ops.Sc.es.Suggest("name-completion-suggest").Field("tags.name.suggest").Text(keyword).Fuzziness(2).Analyzer("kuromoji").SkipDuplicates(true)).
 		Suggester(ops.Sc.es.Suggest("trans-completion-suggest").Field("tags.translation.suggest").Text(keyword).Fuzziness(2).Analyzer("smartcn").SkipDuplicates(true)).
@@ -286,7 +288,7 @@ func (ops *DatabaseOperations) SearchTagSuggest(keyword string) ([]models.Illust
 	query := ops.Sc.es.Search(config.IllustSearchIndexName).Source(nil).
 		SearchSource(source)
 
-	results, err := ops.Sc.es.DoSearch(query)
+	results, err := ops.Sc.es.DoSearch(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +303,7 @@ func (ops *DatabaseOperations) SearchTagSuggest(keyword string) ([]models.Illust
 	return res, nil
 }
 
-func (ops *DatabaseOperations) SearchIllust(keyword string, page int, limit int, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, int64, []float64, []*string, error) {
+func (ops *DatabaseOperations) SearchIllust(ctx context.Context, keyword string, page int, limit int, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, int64, []float64, []*string, error) {
 	query := ops.Sc.es.Search(config.IllustSearchIndexName).
 		Query(ops.Sc.es.BoolQuery().
 			Should(ops.Sc.es.Query("title", keyword).Boost(4)).
@@ -323,7 +325,7 @@ func (ops *DatabaseOperations) SearchIllust(keyword string, page int, limit int,
 	}
 	query = query.Sort("_score", false).MinScore(2)
 
-	results, err := ops.Sc.es.DoSearch(query)
+	results, err := ops.Sc.es.DoSearch(ctx, query)
 	if err != nil {
 		return nil, 0, nil, nil, err
 	}
@@ -346,7 +348,7 @@ func (ops *DatabaseOperations) SearchIllust(keyword string, page int, limit int,
 			}
 		}
 
-		illusts, err := ops.QueryIllusts(illustids, resultbanned)
+		illusts, err := ops.QueryIllusts(ctx, illustids, resultbanned)
 		if err != nil {
 			return nil, 0, nil, nil, err
 		}
@@ -370,7 +372,7 @@ func (ops *DatabaseOperations) SearchIllust(keyword string, page int, limit int,
 	return nil, 0, nil, nil, err
 }
 
-func (ops *DatabaseOperations) QueryIllustsByTags(musttags []string, shouldtags []string, page int64, limit int64, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, error) {
+func (ops *DatabaseOperations) QueryIllustsByTags(ctx context.Context, musttags []string, shouldtags []string, page int64, limit int64, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, error) {
 	var results []models.Illust
 
 	filter := bson.M{}
@@ -396,57 +398,57 @@ func (ops *DatabaseOperations) QueryIllustsByTags(musttags []string, shouldtags 
 		opts = opts.SetSort(bson.M{"createDate": -1})
 	}
 
-	cursor, err := ops.Cols.Illust.Find(ops.Ctx, query, opts)
+	cursor, err := ops.Cols.Illust.Find(ctx, query, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = cursor.All(ops.Ctx, &results); err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		return nil, err
 	}
 
 	return results, nil
 }
 
-func (ops *DatabaseOperations) QueryIllustByUser(userId uint64, resultbanned bool) ([]models.Illust, error) {
+func (ops *DatabaseOperations) QueryIllustByUser(ctx context.Context, userId uint64, resultbanned bool) ([]models.Illust, error) {
 	var results []models.Illust
 	opts := options.Find().SetSort(bson.M{"createDate": -1})
 	query := bson.M{"user": userId, "banned": false}
 	if resultbanned {
 		query["banned"] = true
 	}
-	cursor, err := ops.Cols.Illust.Find(ops.Ctx, query, opts)
+	cursor, err := ops.Cols.Illust.Find(ctx, query, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = cursor.All(ops.Ctx, &results); err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		return nil, err
 	}
 
 	return results, err
 }
 
-func (ops *DatabaseOperations) QueryIllustByUserWithPage(userId uint64, page int64, limit int64, resultbanned bool) ([]models.Illust, error) {
+func (ops *DatabaseOperations) QueryIllustByUserWithPage(ctx context.Context, userId uint64, page int64, limit int64, resultbanned bool) ([]models.Illust, error) {
 	var results []models.Illust
 	query := bson.M{"user": userId, "banned": false}
 	if resultbanned {
 		query["banned"] = true
 	}
 	opts := options.Find().SetSort(bson.M{"createDate": -1}).SetLimit(limit).SetSkip(page * limit)
-	cursor, err := ops.Cols.Illust.Find(ops.Ctx, query, opts)
+	cursor, err := ops.Cols.Illust.Find(ctx, query, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = cursor.All(ops.Ctx, &results); err != nil {
+	if err = cursor.All(ctx, &results); err != nil {
 		return nil, err
 	}
 
 	return results, err
 }
 
-func (ops *DatabaseOperations) DeleteIllust(illustId uint64) error {
+func (ops *DatabaseOperations) DeleteIllust(ctx context.Context, illustId uint64) error {
 	is, err := ops.Flt.Exists(config.IllustTableName, utils.Itoa(illustId))
 
 	if err != nil {
@@ -454,7 +456,7 @@ func (ops *DatabaseOperations) DeleteIllust(illustId uint64) error {
 	}
 
 	if is {
-		_, err := ops.Cols.Illust.DeleteOne(ops.Ctx, bson.M{"_id": illustId})
+		_, err := ops.Cols.Illust.DeleteOne(ctx, bson.M{"_id": illustId})
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				return nil

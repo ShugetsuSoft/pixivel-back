@@ -1,6 +1,9 @@
 package operations
 
 import (
+	"context"
+	"time"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/convert"
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils"
@@ -8,10 +11,9 @@ import (
 	"github.com/olivere/elastic/v7"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
-func (ops *DatabaseOperations) InsertUser(user *models.User) error {
+func (ops *DatabaseOperations) InsertUser(ctx context.Context, user *models.User) error {
 	var err error
 	is, err := ops.Flt.Exists(config.UserTableName, utils.Itoa(user.ID))
 	if err != nil {
@@ -24,7 +26,7 @@ func (ops *DatabaseOperations) InsertUser(user *models.User) error {
 	} else {
 		user.IllustsUpdateTime = time.Unix(0, 0)
 		user.IllustsCount = 0
-		_, err = ops.Cols.User.InsertOne(ops.Ctx, user)
+		_, err = ops.Cols.User.InsertOne(ctx, user)
 
 		if mongo.IsDuplicateKeyError(err) {
 			_, err = ops.Flt.Add(config.UserTableName, utils.Itoa(user.ID))
@@ -47,12 +49,12 @@ func (ops *DatabaseOperations) InsertUser(user *models.User) error {
 	return nil
 
 REPLACE:
-	result, err := ops.Cols.User.ReplaceOne(ops.Ctx, bson.M{"_id": user.ID}, user)
+	result, err := ops.Cols.User.ReplaceOne(ctx, bson.M{"_id": user.ID}, user)
 	if err != nil {
 		return err
 	}
 	if result.MatchedCount == 0 {
-		_, err = ops.Cols.User.InsertOne(ops.Ctx, user)
+		_, err = ops.Cols.User.InsertOne(ctx, user)
 		if err != nil {
 			return err
 		}
@@ -62,14 +64,14 @@ REPLACE:
 	return err
 }
 
-func (ops *DatabaseOperations) UpdateUserIllustsTime(userId uint64) error {
+func (ops *DatabaseOperations) UpdateUserIllustsTime(ctx context.Context, userId uint64) error {
 	var err error
 	is, err := ops.Flt.Exists(config.UserTableName, utils.Itoa(userId))
 	if err != nil {
 		return err
 	}
 	if is {
-		_, err = ops.Cols.User.UpdateOne(ops.Ctx, bson.M{"_id": userId}, bson.M{"$set": bson.M{
+		_, err = ops.Cols.User.UpdateOne(ctx, bson.M{"_id": userId}, bson.M{"$set": bson.M{
 			"illusts_update_time": time.Now(),
 			"update_time":         time.Now(),
 		}})
@@ -78,16 +80,16 @@ func (ops *DatabaseOperations) UpdateUserIllustsTime(userId uint64) error {
 	return nil
 }
 
-func (ops *DatabaseOperations) InsertUserSearch(user *models.User) error {
+func (ops *DatabaseOperations) InsertUserSearch(ctx context.Context, user *models.User) error {
 	usersearch := convert.User2UserSearch(user)
-	err := ops.Sc.es.InsertDocument(config.UserSearchIndexName, utils.Itoa(user.ID), usersearch)
+	err := ops.Sc.es.InsertDocument(ctx, config.UserSearchIndexName, utils.Itoa(user.ID), usersearch)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ops *DatabaseOperations) QueryUser(userId uint64, resultbanned bool) (*models.User, error) {
+func (ops *DatabaseOperations) QueryUser(ctx context.Context, userId uint64, resultbanned bool) (*models.User, error) {
 	is, err := ops.Flt.Exists(config.UserTableName, utils.Itoa(userId))
 
 	if err != nil {
@@ -98,7 +100,7 @@ func (ops *DatabaseOperations) QueryUser(userId uint64, resultbanned bool) (*mod
 		result := models.User{
 			Image: models.UserImage{},
 		}
-		err := ops.Cols.User.FindOne(ops.Ctx, bson.M{"_id": userId}).Decode(&result)
+		err := ops.Cols.User.FindOne(ctx, bson.M{"_id": userId}).Decode(&result)
 
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
@@ -117,10 +119,10 @@ func (ops *DatabaseOperations) QueryUser(userId uint64, resultbanned bool) (*mod
 	return nil, nil
 }
 
-func (ops *DatabaseOperations) QueryUsers(userIds []uint64, resultbanned bool) ([]models.User, error) {
+func (ops *DatabaseOperations) QueryUsers(ctx context.Context, userIds []uint64, resultbanned bool) ([]models.User, error) {
 	query := bson.M{"_id": bson.M{"$in": userIds}}
-	cursor, err := ops.Cols.User.Find(ops.Ctx, query)
-	defer cursor.Close(ops.Ctx)
+	cursor, err := ops.Cols.User.Find(ctx, query)
+	defer cursor.Close(ctx)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -131,7 +133,7 @@ func (ops *DatabaseOperations) QueryUsers(userIds []uint64, resultbanned bool) (
 
 	users := make([]models.User, 0, len(userIds))
 
-	for cursor.Next(ops.Ctx) {
+	for cursor.Next(ctx) {
 		result := models.User{
 			Image: models.UserImage{},
 		}
@@ -150,14 +152,14 @@ func (ops *DatabaseOperations) QueryUsers(userIds []uint64, resultbanned bool) (
 	return users, err
 }
 
-func (ops *DatabaseOperations) SearchUserSuggest(keyword string) ([]string, error) {
+func (ops *DatabaseOperations) SearchUserSuggest(ctx context.Context, keyword string) ([]string, error) {
 	source := elastic.NewSearchSource().
 		Suggester(ops.Sc.es.Suggest("name-completion-suggest").Field("name.suggest").Text(keyword).Fuzziness(2).Analyzer("kuromoji")).
 		FetchSource(false).TrackScores(true)
 	query := ops.Sc.es.Search(config.UserSearchIndexName).Source(nil).
 		SearchSource(source)
 
-	results, err := ops.Sc.es.DoSearch(query)
+	results, err := ops.Sc.es.DoSearch(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +171,7 @@ func (ops *DatabaseOperations) SearchUserSuggest(keyword string) ([]string, erro
 	return res, nil
 }
 
-func (ops *DatabaseOperations) SearchUser(keyword string, page int, limit int, resultbanned bool) ([]models.User, int64, []float64, []*string, error) {
+func (ops *DatabaseOperations) SearchUser(ctx context.Context, keyword string, page int, limit int, resultbanned bool) ([]models.User, int64, []float64, []*string, error) {
 	query := ops.Sc.es.Search(config.UserSearchIndexName).
 		Query(ops.Sc.es.BoolQuery().
 			Should(ops.Sc.es.Query("name", keyword).Boost(2)).
@@ -181,7 +183,7 @@ func (ops *DatabaseOperations) SearchUser(keyword string, page int, limit int, r
 
 	query = query.Sort("_score", false).MinScore(2)
 
-	results, err := ops.Sc.es.DoSearch(query)
+	results, err := ops.Sc.es.DoSearch(ctx, query)
 	if err != nil {
 		return nil, 0, nil, nil, err
 	}
@@ -204,7 +206,7 @@ func (ops *DatabaseOperations) SearchUser(keyword string, page int, limit int, r
 			}
 		}
 
-		users, err := ops.QueryUsers(userids, resultbanned)
+		users, err := ops.QueryUsers(ctx, userids, resultbanned)
 		if err != nil {
 			return nil, 0, nil, nil, err
 		}
@@ -228,7 +230,7 @@ func (ops *DatabaseOperations) SearchUser(keyword string, page int, limit int, r
 	return nil, 0, nil, nil, err
 }
 
-func (ops *DatabaseOperations) DeleteUser(userId uint64) error {
+func (ops *DatabaseOperations) DeleteUser(ctx context.Context, userId uint64) error {
 	is, err := ops.Flt.Exists(config.UserTableName, utils.Itoa(userId))
 
 	if err != nil {
@@ -236,7 +238,7 @@ func (ops *DatabaseOperations) DeleteUser(userId uint64) error {
 	}
 
 	if is {
-		_, err := ops.Cols.User.DeleteOne(ops.Ctx, bson.M{"_id": userId})
+		_, err := ops.Cols.User.DeleteOne(ctx, bson.M{"_id": userId})
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				return nil
@@ -250,14 +252,14 @@ func (ops *DatabaseOperations) DeleteUser(userId uint64) error {
 	return nil
 }
 
-func (ops *DatabaseOperations) ClearUserIllusts(userId uint64) error {
-	illusts, err := ops.QueryIllustByUser(userId, true)
+func (ops *DatabaseOperations) ClearUserIllusts(ctx context.Context, userId uint64) error {
+	illusts, err := ops.QueryIllustByUser(ctx, userId, true)
 	if err != nil {
 		return err
 	}
 
 	for i := 0; i < len(illusts); i++ {
-		err = ops.DeleteIllust((illusts)[i].ID)
+		err = ops.DeleteIllust(ctx, (illusts)[i].ID)
 		if err != nil {
 			return err
 		}
@@ -270,7 +272,7 @@ func (ops *DatabaseOperations) ClearUserIllusts(userId uint64) error {
 	}
 
 	if is {
-		_, err = ops.Cols.User.UpdateOne(ops.Ctx, bson.M{"_id": userId}, bson.M{"$set": bson.M{
+		_, err = ops.Cols.User.UpdateOne(ctx, bson.M{"_id": userId}, bson.M{"$set": bson.M{
 			"illusts_update_time": time.Unix(0, 0),
 			"illusts_count":       0,
 			"update_time":         time.Now(),
@@ -280,14 +282,14 @@ func (ops *DatabaseOperations) ClearUserIllusts(userId uint64) error {
 	return nil
 }
 
-func (ops *DatabaseOperations) SetIllustsCount(userId uint64, count uint) error {
+func (ops *DatabaseOperations) SetIllustsCount(ctx context.Context, userId uint64, count uint) error {
 	var err error
 	is, err := ops.Flt.Exists(config.UserTableName, utils.Itoa(userId))
 	if err != nil {
 		return err
 	}
 	if is {
-		_, err = ops.Cols.User.UpdateOne(ops.Ctx, bson.M{"_id": userId}, bson.M{"$set": bson.M{
+		_, err = ops.Cols.User.UpdateOne(ctx, bson.M{"_id": userId}, bson.M{"$set": bson.M{
 			"illusts_update_time": time.Now(),
 			"illusts_count":       count,
 			"update_time":         time.Now(),
