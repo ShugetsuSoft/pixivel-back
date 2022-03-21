@@ -21,11 +21,10 @@ type DatabaseCollections struct {
 }
 
 type DatabaseOperations struct {
-	Ctx     context.Context
-	Flt     models.Filter
-	Session mongo.Session
-	Cols    *DatabaseCollections
-	Sc      *SearchOperations
+	Ctx  context.Context
+	Flt  models.Filter
+	Cols *DatabaseCollections
+	Sc   *SearchOperations
 }
 
 type SearchOperations struct {
@@ -34,11 +33,7 @@ type SearchOperations struct {
 }
 
 func NewDatabaseOperations(ctx context.Context, db *drivers.MongoDatabase, filter models.Filter, es *drivers.ElasticSearch, ndb *drivers.NearDB) *DatabaseOperations {
-	sess, err := db.Session()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	var err error
 	if es != nil {
 		err = es.CreateIndex(config.IllustSearchIndexName, models.IllustSearchMapping)
 		if err != nil && err != models.ErrorIndexExist {
@@ -59,9 +54,8 @@ func NewDatabaseOperations(ctx context.Context, db *drivers.MongoDatabase, filte
 		Options: options.Index().SetUnique(true),
 	})
 	return &DatabaseOperations{
-		Ctx:     ctx,
-		Flt:     filter,
-		Session: sess,
+		Ctx: ctx,
+		Flt: filter,
 		Cols: &DatabaseCollections{
 			Illust: illustCol,
 			User:   userCol,

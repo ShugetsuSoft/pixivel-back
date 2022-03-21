@@ -1,9 +1,10 @@
 package reader
 
 import (
+	"time"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/convert"
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
-	"time"
 )
 
 func (r *Reader) IllustResponse(illustId uint64, forcefetch bool) (*models.IllustResponse, error) {
@@ -28,6 +29,9 @@ START:
 
 	userId := uint64(illust.User)
 	user, err := r.dbops.QueryUser(userId, false)
+	if err != nil {
+		return nil, err
+	}
 
 	if user == nil {
 		if retry == 0 {

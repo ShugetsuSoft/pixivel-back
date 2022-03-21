@@ -14,7 +14,7 @@ type MongoDatabase struct {
 }
 
 func NewMongoDatabase(context context.Context, uri string, dbname string) (*MongoDatabase, error) {
-	clientOptions := options.Client().ApplyURI(uri)
+	clientOptions := options.Client().ApplyURI(uri).SetMaxPoolSize(20)
 	client, err := mongo.Connect(context, clientOptions)
 	if err != nil {
 		return nil, err
