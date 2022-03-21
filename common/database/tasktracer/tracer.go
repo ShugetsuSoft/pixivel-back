@@ -44,7 +44,7 @@ func (tc *TaskTracer) NewTaskGroup(params map[string]string, tasknum uint) (stri
 	if isexist {
 		return tid, true, nil
 	}
-	err = cli.SetValueExpire(tid, utils.Itoa(tasknum), 60)
+	err = cli.SetValueExpire(tid, utils.Itoa(tasknum), 60 * 10)
 	if err != nil {
 		return "", false, err
 	}
