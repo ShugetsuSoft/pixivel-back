@@ -52,9 +52,13 @@ func (r *Router) Fail(err error) *Response {
 	if r.debug {
 		erra = fmt.Sprintf("%s", err)
 	} else {
-		erra = "Debug Disabled"
+		erra = "服务器酱出错啦！"
 	}
-	telemetry.Log(telemetry.Label{"pos": "ResponseError"}, fmt.Sprintf("%s", err))
+	logerr := fmt.Sprintf("%s", err)
+	if strings.Contains(logerr, "context canceled") {
+		return &Response{Error: true, Message: erra, Data: nil}
+	}
+	telemetry.Log(telemetry.Label{"pos": "ResponseError"}, logerr)
 	return &Response{Error: true, Message: erra, Data: nil}
 }
 
