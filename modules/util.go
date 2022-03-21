@@ -2,10 +2,11 @@ package modules
 
 import (
 	"context"
-	"github.com/ShugetsuSoft/pixivel-back/common/models"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
+
+	"github.com/ShugetsuSoft/pixivel-back/common/models"
+	"gopkg.in/yaml.v3"
 
 	"github.com/ShugetsuSoft/pixivel-back/common/database/drivers"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/config"
@@ -59,6 +60,6 @@ func NewRD(redisuri string) *drivers.RedisPool {
 }
 
 func NewNB(conf *models.Config, ctx context.Context) (*drivers.NearDB, error) {
-	ndb, err := drivers.NewNearDB(ctx, conf.Neardb.URI)
+	ndb, err := drivers.NewNearDB(conf.Neardb.URI)
 	return ndb, err
 }

@@ -128,16 +128,16 @@ func (ops *DatabaseOperations) InsertIllustSearch(ctx context.Context, illust *m
 	return nil
 }
 
-func (ops *DatabaseOperations) InsertIllustTagNearDB(illust *models.Illust) error {
+func (ops *DatabaseOperations) InsertIllustTagNearDB(ctx context.Context, illust *models.Illust) error {
 	tagset := make([]string, len(illust.Tags))
 	for i, tag := range illust.Tags {
 		tagset[i] = tag.Name
 	}
-	return ops.Sc.ndb.Add(illust.ID, tagset)
+	return ops.Sc.ndb.Add(ctx, illust.ID, tagset)
 }
 
 func (ops *DatabaseOperations) RecommendIllustsByIllustId(ctx context.Context, illustId uint64, k int, drif float64, resultbanned bool) ([]models.Illust, error) {
-	items, err := ops.Sc.ndb.QueryById(illustId, k, drif)
+	items, err := ops.Sc.ndb.QueryById(ctx, illustId, k, drif)
 	if err != nil {
 		return nil, err
 	}
@@ -150,11 +150,11 @@ func (ops *DatabaseOperations) RecommendIllustsByIllustId(ctx context.Context, i
 		for i, tag := range illust.Tags {
 			tags[i] = tag.Name
 		}
-		err = ops.Sc.ndb.Add(illust.ID, tags)
+		err = ops.Sc.ndb.Add(ctx, illust.ID, tags)
 		if err != nil {
 			return nil, err
 		}
-		items, err = ops.Sc.ndb.QueryById(illustId, k, drif)
+		items, err = ops.Sc.ndb.QueryById(ctx, illustId, k, drif)
 		if err != nil {
 			return nil, err
 		}
