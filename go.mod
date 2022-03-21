@@ -9,7 +9,6 @@ require (
 	github.com/antchfx/htmlquery v1.2.3 // indirect
 	github.com/antchfx/xmlquery v1.3.6 // indirect
 	github.com/gin-contrib/cors v1.3.1
-	github.com/gin-contrib/timeout v0.0.3 // indirect
 	github.com/gin-gonic/gin v1.7.4
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocolly/colly v1.2.0
