@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"context"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/database/drivers/pb"
 	"google.golang.org/grpc"
 )
@@ -9,10 +10,9 @@ import (
 type NearDB struct {
 	Conn   *grpc.ClientConn
 	Client pb.NearDBServiceClient
-	ctx    context.Context
 }
 
-func NewNearDB(ctx context.Context, uri string) (*NearDB, error) {
+func NewNearDB(uri string) (*NearDB, error) {
 	conn, err := grpc.Dial(uri, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
@@ -21,20 +21,19 @@ func NewNearDB(ctx context.Context, uri string) (*NearDB, error) {
 	return &NearDB{
 		Conn:   conn,
 		Client: client,
-		ctx:    ctx,
 	}, nil
 }
 
-func (near *NearDB) Add(id uint64, set []string) error {
-	_, err := near.Client.Add(near.ctx, &pb.AddRequest{
+func (near *NearDB) Add(ctx context.Context, id uint64, set []string) error {
+	_, err := near.Client.Add(ctx, &pb.AddRequest{
 		Id:      id,
 		Taglist: set,
 	})
 	return err
 }
 
-func (near *NearDB) Query(set []string, k int, drif float64) ([]*pb.Item, error) {
-	items, err := near.Client.Query(near.ctx, &pb.QueryRequest{
+func (near *NearDB) Query(ctx context.Context, set []string, k int, drif float64) ([]*pb.Item, error) {
+	items, err := near.Client.Query(ctx, &pb.QueryRequest{
 		Taglist: set,
 		K:       int64(k),
 		Drift:   drif,
@@ -42,8 +41,8 @@ func (near *NearDB) Query(set []string, k int, drif float64) ([]*pb.Item, error)
 	return items.GetItems(), err
 }
 
-func (near *NearDB) QueryById(id uint64, k int, drif float64) ([]*pb.Item, error) {
-	items, err := near.Client.QueryById(near.ctx, &pb.QueryByIdRequest{
+func (near *NearDB) QueryById(ctx context.Context, id uint64, k int, drif float64) ([]*pb.Item, error) {
+	items, err := near.Client.QueryById(ctx, &pb.QueryByIdRequest{
 		Id:    id,
 		K:     int64(k),
 		Drift: drif,

@@ -21,11 +21,9 @@ type DatabaseCollections struct {
 }
 
 type DatabaseOperations struct {
-	Ctx     context.Context
-	Flt     models.Filter
-	Session mongo.Session
-	Cols    *DatabaseCollections
-	Sc      *SearchOperations
+	Flt  models.Filter
+	Cols *DatabaseCollections
+	Sc   *SearchOperations
 }
 
 type SearchOperations struct {
@@ -34,17 +32,13 @@ type SearchOperations struct {
 }
 
 func NewDatabaseOperations(ctx context.Context, db *drivers.MongoDatabase, filter models.Filter, es *drivers.ElasticSearch, ndb *drivers.NearDB) *DatabaseOperations {
-	sess, err := db.Session()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	var err error
 	if es != nil {
-		err = es.CreateIndex(config.IllustSearchIndexName, models.IllustSearchMapping)
+		err = es.CreateIndex(ctx, config.IllustSearchIndexName, models.IllustSearchMapping)
 		if err != nil && err != models.ErrorIndexExist {
 			log.Fatal(err)
 		}
-		err = es.CreateIndex(config.UserSearchIndexName, models.UserSearchMapping)
+		err = es.CreateIndex(ctx, config.UserSearchIndexName, models.UserSearchMapping)
 		if err != nil && err != models.ErrorIndexExist {
 			log.Fatal(err)
 		}
@@ -55,17 +49,17 @@ func NewDatabaseOperations(ctx context.Context, db *drivers.MongoDatabase, filte
 	rankCol := db.Collection(config.RankTableName)
 	ugoiraCol := db.Collection(config.UgoiraTableName)
 	rankCol.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys:    bson.D{{Key: "date", Value: -1}, {Key: "mode", Value: -1}, {Key: "content", Value: -1}},
+		Keys: bson.D{{Key: "date", Value: -1}, {Key: "mode", Value: -1}, {Key: "content", Value: -1}},
 		Options: options.Index().SetUnique(true),
 	})
 	illustCol.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys:    bson.D{{Key: "tags.name", Value: 1}},
-		Options: options.Index(),
+		Keys: bson.D{{Key: "tags.name", Value: 1}}
+	})
+	illustCol.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.D{{Key: "user", Value: 1}},
 	})
 	return &DatabaseOperations{
-		Ctx:     ctx,
-		Flt:     filter,
-		Session: sess,
+		Flt: filter,
 		Cols: &DatabaseCollections{
 			Illust: illustCol,
 			User:   userCol,

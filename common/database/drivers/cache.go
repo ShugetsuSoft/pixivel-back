@@ -53,6 +53,7 @@ func calcKey(api string, params []string) string {
 func (c *Cache) Get(api string, params ...string) (interface{}, error) {
 	key := calcKey(api, params)
 	cli := c.redis.NewRedisClient()
+	defer cli.Close()
 	cached, err := cli.GetValueBytes(key)
 	if err != nil {
 		if err == redis.ErrNil {
@@ -69,7 +70,7 @@ func (c *Cache) Get(api string, params ...string) (interface{}, error) {
 func (c *Cache) Set(api string, value interface{}, expire int, params ...string) error {
 	key := calcKey(api, params)
 	cli := c.redis.NewRedisClient()
-
+	defer cli.Close()
 	binval, err := marshal(value)
 	if err != nil {
 		return err
@@ -80,6 +81,7 @@ func (c *Cache) Set(api string, value interface{}, expire int, params ...string)
 func (c *Cache) Clear(api string, params ...string) error {
 	key := calcKey(api, params)
 	cli := c.redis.NewRedisClient()
+	defer cli.Close()
 	err := cli.DeleteValue(key)
 	if err == redis.ErrNil {
 		return nil

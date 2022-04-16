@@ -2,13 +2,14 @@ package responser
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/convert"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/drivers"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
 	"github.com/prometheus/client_golang/prometheus"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/ShugetsuSoft/pixivel-back/common/database/operations"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/tasktracer"
@@ -51,13 +52,19 @@ func (r *Router) Fail(err error) *Response {
 	if r.debug {
 		erra = fmt.Sprintf("%s", err)
 	} else {
-		erra = "Debug Disabled"
+		erra = "服务器酱出错啦！"
 	}
-	telemetry.Log(telemetry.Label{"pos": "ResponseError"}, fmt.Sprintf("%s", err))
+	logerr := fmt.Sprintf("%s", err)
+	if strings.Contains(logerr, "context canceled") {
+		return &Response{Error: true, Message: erra, Data: nil}
+	}
+	telemetry.Log(telemetry.Label{"pos": "ResponseError"}, logerr)
 	return &Response{Error: true, Message: erra, Data: nil}
 }
 
 func (r *Router) GetIllustHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "illust"}).Inc()
 	id := utils.Atoi(c.Param("id"))
 	if id == 0 {
@@ -80,7 +87,7 @@ func (r *Router) GetIllustHandler(c *gin.Context) {
 		}
 	}
 
-	illust, err := r.reader.IllustResponse(id, forcefetch)
+	illust, err := r.reader.IllustResponse(ctx, id, forcefetch)
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "illust"}).Inc()
@@ -96,6 +103,8 @@ func (r *Router) GetIllustHandler(c *gin.Context) {
 }
 
 func (r *Router) GetUgoiraHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "ugoira"}).Inc()
 	id := utils.Atoi(c.Param("id"))
 	if id == 0 {
@@ -118,7 +127,7 @@ func (r *Router) GetUgoiraHandler(c *gin.Context) {
 		}
 	}
 
-	ugoira, err := r.reader.UgoiraResponse(id, forcefetch)
+	ugoira, err := r.reader.UgoiraResponse(ctx, id, forcefetch)
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "ugoira"}).Inc()
@@ -134,6 +143,8 @@ func (r *Router) GetUgoiraHandler(c *gin.Context) {
 }
 
 func (r *Router) GetUserDetailHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "user"}).Inc()
 	id := utils.Atoi(c.Param("id"))
 	if id == 0 {
@@ -149,7 +160,7 @@ func (r *Router) GetUserDetailHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := r.reader.UserDetailResponse(id)
+	user, err := r.reader.UserDetailResponse(ctx, id)
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "user"}).Inc()
@@ -165,6 +176,8 @@ func (r *Router) GetUserDetailHandler(c *gin.Context) {
 }
 
 func (r *Router) GetUserIllustsHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "user-illust"}).Inc()
 	id := utils.Atoi(c.Param("id"))
 	if id == 0 {
@@ -190,7 +203,7 @@ func (r *Router) GetUserIllustsHandler(c *gin.Context) {
 		return
 	}
 
-	illusts, err := r.reader.UserIllustsResponse(id, int64(page), int64(limit))
+	illusts, err := r.reader.UserIllustsResponse(ctx, id, int64(page), int64(limit))
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "user-illust"}).Inc()
@@ -206,6 +219,8 @@ func (r *Router) GetUserIllustsHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchIllustHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-illust"}).Inc()
 	keyword := c.Param("keyword")
 	if keyword == "" {
@@ -232,7 +247,7 @@ func (r *Router) SearchIllustHandler(c *gin.Context) {
 		sortdate = true
 	}
 
-	illusts, err := r.reader.SearchIllustsResponse(keyword, int(page), int(limit), sortpop, sortdate)
+	illusts, err := r.reader.SearchIllustsResponse(ctx, keyword, int(page), int(limit), sortpop, sortdate)
 
 	if err != nil {
 		if err == models.ErrorNoResult {
@@ -248,13 +263,15 @@ func (r *Router) SearchIllustHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchIllustSuggestHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-illust-suggest"}).Inc()
 	keyword := c.Param("keyword")
 	if keyword == "" {
 		return
 	}
 
-	suggests, err := r.reader.SearchIllustsSuggestResponse(keyword)
+	suggests, err := r.reader.SearchIllustsSuggestResponse(ctx, keyword)
 
 	if err != nil {
 		if err == models.ErrorNoResult {
@@ -270,6 +287,8 @@ func (r *Router) SearchIllustSuggestHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchUserHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-user"}).Inc()
 	keyword := c.Param("keyword")
 	if keyword == "" {
@@ -286,7 +305,7 @@ func (r *Router) SearchUserHandler(c *gin.Context) {
 		limit = 30
 	}
 
-	users, err := r.reader.SearchUsersResponse(keyword, int(page), int(limit))
+	users, err := r.reader.SearchUsersResponse(ctx, keyword, int(page), int(limit))
 
 	if err != nil {
 		if err == models.ErrorNoResult {
@@ -302,13 +321,15 @@ func (r *Router) SearchUserHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchUserSuggestHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-user-suggest"}).Inc()
 	keyword := c.Param("keyword")
 	if keyword == "" {
 		return
 	}
 
-	suggests, err := r.reader.SearchUsersSuggestResponse(keyword)
+	suggests, err := r.reader.SearchUsersSuggestResponse(ctx, keyword)
 
 	if err != nil {
 		if err == models.ErrorNoResult {
@@ -324,13 +345,15 @@ func (r *Router) SearchUserSuggestHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchTagSuggestHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-tag-suggest"}).Inc()
 	keyword := c.Param("keyword")
 	if keyword == "" {
 		return
 	}
 
-	suggests, err := r.reader.SearchTagsSuggestResponse(keyword)
+	suggests, err := r.reader.SearchTagsSuggestResponse(ctx, keyword)
 
 	if err != nil {
 		if err == models.ErrorNoResult {
@@ -346,6 +369,8 @@ func (r *Router) SearchTagSuggestHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchIllustByTagHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-illust-by-tag"}).Inc()
 	keywords := c.Param("keyword")
 	if keywords == "" {
@@ -395,7 +420,7 @@ func (r *Router) SearchIllustByTagHandler(c *gin.Context) {
 		perfectmatch = false
 	}
 
-	illusts, err := r.reader.SearchIllustsByTagsResponse(musttags, shouldtags, perfectmatch, int(page), int(limit), sortpop, sortdate)
+	illusts, err := r.reader.SearchIllustsByTagsResponse(ctx, musttags, shouldtags, perfectmatch, int(page), int(limit), sortpop, sortdate)
 
 	if err != nil {
 		if err == models.ErrorNoResult {
@@ -411,6 +436,8 @@ func (r *Router) SearchIllustByTagHandler(c *gin.Context) {
 }
 
 func (r *Router) GetIllustsHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "illusts"}).Inc()
 	keywords := c.Param("ids")
 	if keywords == "" {
@@ -430,7 +457,7 @@ func (r *Router) GetIllustsHandler(c *gin.Context) {
 		illustsids[i] = ida
 	}
 
-	illusts, err := r.reader.IllustsResponse(illustsids)
+	illusts, err := r.reader.IllustsResponse(ctx, illustsids)
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "illusts"}).Inc()
@@ -442,6 +469,8 @@ func (r *Router) GetIllustsHandler(c *gin.Context) {
 }
 
 func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "illust-recommend"}).Inc()
 	const maxpage = 5
 	id := utils.Atoi(c.Param("id"))
@@ -470,7 +499,7 @@ func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
 
 	const limit = 30
 
-	illusts, err := r.reader.RecommendIllustsByIllustId(id, limit*maxpage)
+	illusts, err := r.reader.RecommendIllustsByIllustId(ctx, id, limit*maxpage)
 
 	if err != nil {
 		if err == models.ErrorNoResult {
@@ -498,6 +527,8 @@ func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
 }
 
 func (r *Router) GetRankHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "rank"}).Inc()
 	mode := c.Query("mode")
 	modes := map[string]bool{"daily": true, "weekly": true, "monthly": true, "rookie": true, "original": true, "male": true, "female": true}
@@ -537,7 +568,7 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 
 	limit := 50
 
-	illusts, err := r.reader.RankIllustsResponse(mode, date, int(page), content, limit)
+	illusts, err := r.reader.RankIllustsResponse(ctx, mode, date, int(page), content, limit)
 
 	if err != nil {
 		if err == models.ErrorNoResult {
@@ -558,6 +589,8 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 }
 
 func (r *Router) GetSampleIllustsHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "sample-illusts"}).Inc()
 	page := utils.Atoi(c.Query("p"))
 	if page > 20 || page < 0 {
@@ -573,7 +606,7 @@ func (r *Router) GetSampleIllustsHandler(c *gin.Context) {
 		return
 	}
 
-	illusts, err := r.reader.SampleIllustsResponse(15000, 50)
+	illusts, err := r.reader.SampleIllustsResponse(ctx, 15000, 50)
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "sample-illusts"}).Inc()
@@ -590,6 +623,8 @@ func (r *Router) GetSampleIllustsHandler(c *gin.Context) {
 }
 
 func (r *Router) GetSampleUsersHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "sample-users"}).Inc()
 	page := utils.Atoi(c.Query("p"))
 	if page > 20 || page < 0 {
@@ -605,7 +640,7 @@ func (r *Router) GetSampleUsersHandler(c *gin.Context) {
 		return
 	}
 
-	users, err := r.reader.SampleUsersResponse(50)
+	users, err := r.reader.SampleUsersResponse(ctx, 50)
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "sample-users"}).Inc()

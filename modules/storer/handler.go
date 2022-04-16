@@ -1,6 +1,8 @@
 package storer
 
 import (
+	"context"
+
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils"
 	"github.com/ShugetsuSoft/pixivel-back/modules/storer/source"
@@ -8,6 +10,8 @@ import (
 )
 
 func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
+	ctx := context.Background()
+
 	for {
 		data, tag, priority, err := dataq.GetData()
 		if err != nil {
@@ -24,7 +28,7 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 				return err
 			}
 
-			err = st.ops.InsertIllust(&resdata)
+			err = st.ops.InsertIllust(ctx, &resdata)
 			if err != nil {
 				st.tracer.FailTask(data.Group, err.Error())
 				return err
@@ -43,7 +47,7 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 				return err
 			}
 
-			err = st.ops.InsertUser(&resdata)
+			err = st.ops.InsertUser(ctx, &resdata)
 			if err != nil {
 				st.tracer.FailTask(data.Group, err.Error())
 				return err
@@ -62,7 +66,7 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 			}
 			illustCount := uint(len(resdata.Illusts))
 
-			user, err := st.ops.QueryUser(resdata.UserID, true)
+			user, err := st.ops.QueryUser(ctx, resdata.UserID, true)
 			if err != nil {
 				st.tracer.FailTask(data.Group, err.Error())
 				return err
@@ -70,7 +74,7 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 
 			if user != nil {
 				if illustCount != user.IllustsCount {
-					err = st.ops.SetIllustsCount(resdata.UserID, illustCount)
+					err = st.ops.SetIllustsCount(ctx, resdata.UserID, illustCount)
 					if err != nil {
 						st.tracer.FailTask(data.Group, err.Error())
 						return err
@@ -118,7 +122,7 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 				}
 			}
 
-			err = st.ops.UpdateUserIllustsTime(resdata.UserID)
+			err = st.ops.UpdateUserIllustsTime(ctx, resdata.UserID)
 			if err != nil {
 				st.tracer.FailTask(data.Group, err.Error())
 				return err
@@ -156,7 +160,7 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 					return err
 				}
 			}
-			err := st.ops.AddRankIllusts(resdata.Mode, resdata.Date, resdata.Content, rankIllusts)
+			err := st.ops.AddRankIllusts(ctx, resdata.Mode, resdata.Date, resdata.Content, rankIllusts)
 			if err != nil {
 				st.tracer.FailTask(data.Group, err.Error())
 				return err
@@ -192,7 +196,7 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 				return err
 			}
 
-			err = st.ops.InsertUgoira(&resdata)
+			err = st.ops.InsertUgoira(ctx, &resdata)
 			if err != nil {
 				st.tracer.FailTask(data.Group, err.Error())
 				return err
@@ -221,6 +225,8 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 }
 
 func (st *Storer) handleElasticSearch(dataq *source.DataQueue) error {
+	ctx := context.Background()
+
 	for {
 		data, tag, _, err := dataq.GetData()
 		if err != nil {
@@ -236,7 +242,7 @@ func (st *Storer) handleElasticSearch(dataq *source.DataQueue) error {
 				return err
 			}
 
-			err = st.ops.InsertIllustSearch(&resdata)
+			err = st.ops.InsertIllustSearch(ctx, &resdata)
 			if err != nil {
 				return err
 			}
@@ -252,7 +258,7 @@ func (st *Storer) handleElasticSearch(dataq *source.DataQueue) error {
 				return err
 			}
 
-			err = st.ops.InsertUserSearch(&resdata)
+			err = st.ops.InsertUserSearch(ctx, &resdata)
 			if err != nil {
 				return err
 			}
