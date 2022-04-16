@@ -49,11 +49,11 @@ func NewDatabaseOperations(ctx context.Context, db *drivers.MongoDatabase, filte
 	rankCol := db.Collection(config.RankTableName)
 	ugoiraCol := db.Collection(config.UgoiraTableName)
 	rankCol.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.D{{Key: "date", Value: -1}, {Key: "mode", Value: -1}, {Key: "content", Value: -1}},
+		Keys:    bson.D{{Key: "date", Value: -1}, {Key: "mode", Value: -1}, {Key: "content", Value: -1}},
 		Options: options.Index().SetUnique(true),
 	})
 	illustCol.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.D{{Key: "tags.name", Value: 1}}
+		Keys: bson.D{{Key: "tags.name", Value: 1}},
 	})
 	illustCol.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.D{{Key: "user", Value: 1}},
