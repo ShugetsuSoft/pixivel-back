@@ -181,7 +181,7 @@ func (ops *DatabaseOperations) SearchUser(ctx context.Context, keyword string, p
 		Highlight(elastic.NewHighlight().Field("name")).
 		FetchSourceContext(elastic.NewFetchSourceContext(true).Include("_id")).TrackScores(true)
 
-	query = query.Sort("_score", false).MinScore(2)
+	query = query.Sort("_score", false)
 
 	results, err := ops.Sc.es.DoSearch(ctx, query)
 	if err != nil {

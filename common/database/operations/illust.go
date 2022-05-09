@@ -323,7 +323,7 @@ func (ops *DatabaseOperations) SearchIllust(ctx context.Context, keyword string,
 	if sortdate {
 		query = query.Sort("create_date", false)
 	}
-	query = query.Sort("_score", false).MinScore(2)
+	query = query.Sort("_score", false)
 
 	results, err := ops.Sc.es.DoSearch(ctx, query)
 	if err != nil {
