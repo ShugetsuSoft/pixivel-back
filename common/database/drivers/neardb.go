@@ -24,10 +24,11 @@ func NewNearDB(uri string) (*NearDB, error) {
 	}, nil
 }
 
-func (near *NearDB) Add(ctx context.Context, id uint64, set []string) error {
+func (near *NearDB) Add(ctx context.Context, id uint64, set []string, pop uint) error {
 	_, err := near.Client.Add(ctx, &pb.AddRequest{
 		Id:      id,
 		Taglist: set,
+		Pop:     uint64(pop),
 	})
 	return err
 }

@@ -133,7 +133,8 @@ func (ops *DatabaseOperations) InsertIllustTagNearDB(ctx context.Context, illust
 	for i, tag := range illust.Tags {
 		tagset[i] = tag.Name
 	}
-	return ops.Sc.ndb.Add(ctx, illust.ID, tagset)
+
+	return ops.Sc.ndb.Add(ctx, illust.ID, tagset, illust.Popularity)
 }
 
 func (ops *DatabaseOperations) RecommendIllustsByIllustId(ctx context.Context, illustId uint64, k int, drif float64, resultbanned bool) ([]models.Illust, error) {

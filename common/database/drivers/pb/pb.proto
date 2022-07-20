@@ -12,19 +12,20 @@ service NearDBService {
 message AddRequest {
   uint64 id = 1;
   repeated string taglist = 2;
+  uint64 pop = 3;
 }
 
 message RemoveRequest {
-  uint64 id = 3;
+  uint64 id = 4;
 }
 
 message NoneResponse {
 }
 
 message QueryRequest {
-  repeated string taglist = 4;
-  int64 k = 5;
-  double drift = 6;
+  repeated string taglist = 5;
+  int64 k = 6;
+  double drift = 7;
 }
 
 message Item {
