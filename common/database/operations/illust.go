@@ -151,7 +151,7 @@ func (ops *DatabaseOperations) RecommendIllustsByIllustId(ctx context.Context, i
 		for i, tag := range illust.Tags {
 			tags[i] = tag.Name
 		}
-		err = ops.Sc.ndb.Add(ctx, illust.ID, tags)
+		err = ops.Sc.ndb.Add(ctx, illust.ID, tags, illust.Popularity)
 		if err != nil {
 			return nil, err
 		}
