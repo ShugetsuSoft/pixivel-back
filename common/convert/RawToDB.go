@@ -1,9 +1,10 @@
 package convert
 
 import (
-	"github.com/ShugetsuSoft/pixivel-back/common/utils"
 	"strings"
 	"time"
+
+	"github.com/ShugetsuSoft/pixivel-back/common/utils"
 
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 )
@@ -74,9 +75,9 @@ func CalcIllustPop(sta models.IllustStatistic) uint {
 
 func Illust2IllustSearch(illustdb *models.Illust) *models.IllustSearch {
 	return &models.IllustSearch{
-		Title:       illustdb.Title,
-		AltTitle:    illustdb.AltTitle,
-		Description: illustdb.Description,
+		Title:       utils.RemoveSpecialChars(illustdb.Title),
+		AltTitle:    utils.RemoveSpecialChars(illustdb.AltTitle),
+		Description: utils.RemoveSpecialChars(illustdb.Description),
 		Type:        illustdb.Type,
 		CreateDate:  illustdb.CreateDate,
 		Sanity:      illustdb.Sanity,
@@ -88,8 +89,8 @@ func Illust2IllustSearch(illustdb *models.Illust) *models.IllustSearch {
 
 func User2UserSearch(userdb *models.User) *models.UserSearch {
 	return &models.UserSearch{
-		Name: userdb.Name,
-		Bio:  userdb.Bio,
+		Name: utils.RemoveSpecialChars(userdb.Name),
+		Bio:  utils.RemoveSpecialChars(userdb.Bio),
 	}
 }
 
