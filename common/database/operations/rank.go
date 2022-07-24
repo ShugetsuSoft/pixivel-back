@@ -114,12 +114,16 @@ func (ops *DatabaseOperations) GetSampleIllust(ctx context.Context, tags []strin
 	if err != nil {
 		return nil, err
 	}
-	var result *models.Illust
 
-	if err = cursor.Decode(result); err != nil {
+	result := models.Illust{
+		Statistic: models.IllustStatistic{},
+		Tags:      []models.IllustTag{},
+	}
+
+	if err = cursor.Decode(&result); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &result, nil
 }
 
 func (ops *DatabaseOperations) GetSampleUsers(ctx context.Context, limit int, resultbanned bool) ([]models.User, error) {
