@@ -627,17 +627,16 @@ func (r *Router) GetSampleIllustHandler(c *gin.Context) {
 
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "sample-illust"}).Inc()
 
-	rawtags := c.Param("tags")
-	if rawtags == "" {
-		return
+	rawtags := c.Query("tags")
+	var tags []string
+	if rawtags != "" {
+		tags = strings.Split(rawtags, ",")
 	}
 
 	quality := utils.Atoi(c.Query("quality"))
 	if quality < 0 {
 		quality = 0
 	}
-
-	tags := strings.Split(rawtags, ",")
 
 	illust, err := r.reader.SampleIllustResponse(ctx, tags, int(quality))
 

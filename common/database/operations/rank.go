@@ -96,13 +96,16 @@ func (ops *DatabaseOperations) GetSampleIllusts(ctx context.Context, quality int
 }
 
 func (ops *DatabaseOperations) GetSampleIllust(ctx context.Context, tags []string, quality int, resultbanned bool) (*models.Illust, error) {
+	match := bson.M{
+		"popularity": bson.D{{"$gt", quality}},
+		"type":       0,
+		"banned":     resultbanned,
+	}
+	if len(tags) > 0 {
+		match["tags.name"] = bson.D{{"$in", tags}}
+	}
 	pipeline := mongo.Pipeline{
-		{{"$match", bson.D{
-			{"tags.name", bson.D{{"$in", tags}}},
-			{"popularity", bson.D{{"$gt", quality}}},
-			{"type", 0},
-			{"banned", resultbanned},
-		}}},
+		{{"$match", match}},
 		{{"$sample", bson.D{
 			{"size", 1},
 		}}},
