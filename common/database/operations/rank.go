@@ -95,6 +95,30 @@ func (ops *DatabaseOperations) GetSampleIllusts(ctx context.Context, quality int
 	return results, nil
 }
 
+func (ops *DatabaseOperations) GetSampleIllust(ctx context.Context, tags []string, quality int, resultbanned bool) (*models.Illust, error) {
+	pipeline := mongo.Pipeline{
+		{{"$match", bson.D{
+			{"tags.name", bson.D{{"$in", tags}}},
+			{"popularity", bson.D{{"$gt", quality}}},
+			{"type", 0},
+			{"banned", resultbanned},
+		}}},
+		{{"$sample", bson.D{
+			{"size", 1},
+		}}},
+	}
+	cursor, err := ops.Cols.Illust.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	var result *models.Illust
+
+	if err = cursor.Decode(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (ops *DatabaseOperations) GetSampleUsers(ctx context.Context, limit int, resultbanned bool) ([]models.User, error) {
 	pipeline := mongo.Pipeline{
 		{{"$match", bson.D{

@@ -622,6 +622,34 @@ func (r *Router) GetSampleIllustsHandler(c *gin.Context) {
 	c.JSON(200, success(illusts))
 }
 
+func (r *Router) GetSampleIllustHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	telemetry.RequestsCount.With(prometheus.Labels{"handler": "sample-illust"}).Inc()
+
+	rawtags := c.Param("tags")
+	if rawtags == "" {
+		return
+	}
+
+	quality := utils.Atoi(c.Query("quality"))
+	if quality < 0 {
+		quality = 0
+	}
+
+	tags := strings.Split(rawtags, ",")
+
+	illust, err := r.reader.SampleIllustResponse(ctx, tags, int(quality))
+
+	if err != nil {
+		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "sample-illust"}).Inc()
+		c.JSON(500, r.Fail(err))
+		return
+	}
+
+	c.JSON(200, success(illust))
+}
+
 func (r *Router) GetSampleUsersHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -677,5 +705,6 @@ func (r *Router) mount(rout *gin.Engine) {
 		pixiv.GET("/illusts/sample", r.GetSampleIllustsHandler)
 		pixiv.GET("/user/sample", r.GetSampleUsersHandler)
 		pixiv.GET("/ugoira/:id", r.GetUgoiraHandler)
+		pixiv.GET("/illust/sample/single", r.GetSampleIllustHandler)
 	}
 }

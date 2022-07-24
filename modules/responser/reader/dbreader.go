@@ -172,6 +172,14 @@ func (r *Reader) SampleIllustsResponse(ctx context.Context, quality int, limit i
 	return convert.Illusts2IllustsResponse(results, false), nil
 }
 
+func (r *Reader) SampleIllustResponse(ctx context.Context, tags []string, quality int) (*models.IllustResponse, error) {
+	results, err := r.dbops.GetSampleIllust(ctx, tags, quality, false)
+	if err != nil {
+		return nil, err
+	}
+	return convert.Illust2IllustResponse(results, nil), nil
+}
+
 func (r *Reader) SampleUsersResponse(ctx context.Context, limit int) (*models.UsersResponse, error) {
 	results, err := r.dbops.GetSampleUsers(ctx, limit, false)
 	if err != nil {
