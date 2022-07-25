@@ -47,7 +47,7 @@ func fail(err string) *Response {
 	return &Response{Error: true, Message: err, Data: nil}
 }
 
-func (r *Router) Fail(err error) *Response {
+func (r *Router) Fail(c *gin.Context, code int, err error) {
 	erra := ""
 	if r.debug {
 		erra = fmt.Sprintf("%s", err)
@@ -56,10 +56,12 @@ func (r *Router) Fail(err error) *Response {
 	}
 	logerr := fmt.Sprintf("%s", err)
 	if strings.Contains(logerr, "context canceled") {
-		return &Response{Error: true, Message: erra, Data: nil}
+		c.JSON(code, &Response{Error: true, Message: erra, Data: nil})
+		return
 	}
-	telemetry.Log(telemetry.Label{"pos": "ResponseError"}, logerr)
-	return &Response{Error: true, Message: erra, Data: nil}
+	realIp := c.ClientIP()
+	telemetry.Log(telemetry.Label{"pos": "ResponseError", "ip": realIp}, logerr)
+	c.JSON(code, &Response{Error: true, Message: erra, Data: nil})
 }
 
 func (r *Router) GetIllustHandler(c *gin.Context) {
@@ -91,7 +93,7 @@ func (r *Router) GetIllustHandler(c *gin.Context) {
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "illust"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -131,7 +133,7 @@ func (r *Router) GetUgoiraHandler(c *gin.Context) {
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "ugoira"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -164,7 +166,7 @@ func (r *Router) GetUserDetailHandler(c *gin.Context) {
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "user"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -207,7 +209,7 @@ func (r *Router) GetUserIllustsHandler(c *gin.Context) {
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "user-illust"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -251,11 +253,11 @@ func (r *Router) SearchIllustHandler(c *gin.Context) {
 
 	if err != nil {
 		if err == models.ErrorNoResult {
-			c.JSON(200, r.Fail(err))
+			r.Fail(c, 200, err)
 			return
 		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-illust"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -275,11 +277,11 @@ func (r *Router) SearchIllustSuggestHandler(c *gin.Context) {
 
 	if err != nil {
 		if err == models.ErrorNoResult {
-			c.JSON(200, r.Fail(err))
+			r.Fail(c, 200, err)
 			return
 		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-illust-suggest"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -309,11 +311,11 @@ func (r *Router) SearchUserHandler(c *gin.Context) {
 
 	if err != nil {
 		if err == models.ErrorNoResult {
-			c.JSON(200, r.Fail(err))
+			r.Fail(c, 200, err)
 			return
 		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-user"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -333,11 +335,11 @@ func (r *Router) SearchUserSuggestHandler(c *gin.Context) {
 
 	if err != nil {
 		if err == models.ErrorNoResult {
-			c.JSON(200, r.Fail(err))
+			r.Fail(c, 200, err)
 			return
 		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-user-suggest"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -357,11 +359,11 @@ func (r *Router) SearchTagSuggestHandler(c *gin.Context) {
 
 	if err != nil {
 		if err == models.ErrorNoResult {
-			c.JSON(200, r.Fail(err))
+			r.Fail(c, 200, err)
 			return
 		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-tag-suggest"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -424,11 +426,11 @@ func (r *Router) SearchIllustByTagHandler(c *gin.Context) {
 
 	if err != nil {
 		if err == models.ErrorNoResult {
-			c.JSON(200, r.Fail(err))
+			r.Fail(c, 200, err)
 			return
 		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "search-illust-by-tag"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -461,7 +463,7 @@ func (r *Router) GetIllustsHandler(c *gin.Context) {
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "illusts"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -503,11 +505,11 @@ func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
 
 	if err != nil {
 		if err == models.ErrorNoResult {
-			c.JSON(200, r.Fail(err))
+			r.Fail(c, 200, err)
 			return
 		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "illust-recommend"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -579,11 +581,11 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 
 	if err != nil {
 		if err == models.ErrorNoResult {
-			c.JSON(200, r.Fail(err))
+			r.Fail(c, 200, err)
 			return
 		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "rank"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -617,7 +619,7 @@ func (r *Router) GetSampleIllustsHandler(c *gin.Context) {
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "sample-illusts"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
@@ -651,7 +653,7 @@ func (r *Router) GetSampleUsersHandler(c *gin.Context) {
 
 	if err != nil {
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "sample-users"}).Inc()
-		c.JSON(500, r.Fail(err))
+		r.Fail(c, 500, err)
 		return
 	}
 
