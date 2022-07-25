@@ -529,6 +529,13 @@ func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
 func (r *Router) GetRankHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 
+	timeNow := time.Now()
+	timeZ := time.Date(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0, 0, 0, timeNow.Location())
+	if timeNow.Before(timeZ.Add(20 * time.Minute)) {
+		c.JSON(400, fail("排行榜目前暂无数据"))
+		return
+	}
+
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "rank"}).Inc()
 	mode := c.Query("mode")
 	modes := map[string]bool{"daily": true, "weekly": true, "monthly": true, "rookie": true, "original": true, "male": true, "female": true}
