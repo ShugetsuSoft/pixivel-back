@@ -10,10 +10,11 @@ import (
 )
 
 var banTagList = map[string]bool{
-	"+18":  true,
-	"nude": true,
-	"r18":  true,
-	"r-18": true,
+	"+18":   true,
+	"nude":  true,
+	"r18":   true,
+	"r-18":  true,
+	"r-18g": true,
 }
 
 func ParseImgTime(url string) time.Time {
