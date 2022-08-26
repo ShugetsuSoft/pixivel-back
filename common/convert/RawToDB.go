@@ -84,7 +84,7 @@ func Illust2IllustSearch(illustdb *models.Illust) *models.IllustSearch {
 		Sanity:      illustdb.Sanity,
 		Popularity:  illustdb.Popularity,
 		User:        illustdb.User,
-		Tags:        illustdb.Tags,
+		Tags:        utils.RemoveSpecialCharsTags(illustdb.Tags),
 	}
 }
 
