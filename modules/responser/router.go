@@ -533,7 +533,7 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 
 	timeNow := time.Now()
 	timeZ := time.Date(timeNow.Year(), timeNow.Month(), timeNow.Day(), 0, 0, 0, 0, timeNow.Location())
-	if timeNow.Before(timeZ.Add(20 * time.Minute)) {
+	if timeNow.Before(timeZ.Add(2 * time.Hour)) {
 		c.JSON(400, fail("排行榜目前暂无数据"))
 		return
 	}
