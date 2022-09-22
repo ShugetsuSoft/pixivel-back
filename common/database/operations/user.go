@@ -174,8 +174,9 @@ func (ops *DatabaseOperations) SearchUserSuggest(ctx context.Context, keyword st
 func (ops *DatabaseOperations) SearchUser(ctx context.Context, keyword string, page int, limit int, resultbanned bool) ([]models.User, int64, []float64, []*string, error) {
 	query := ops.Sc.es.Search(config.UserSearchIndexName).
 		Query(ops.Sc.es.BoolQuery().
-			Should(ops.Sc.es.Query("name", keyword).Boost(2)).
-			Should(ops.Sc.es.Query("bio", keyword).Boost(1)),
+			Should(ops.Sc.es.Query("name", keyword).Analyzer("kuromoji").Boost(3)).
+			Should(elastic.NewMatchQuery("name.keyword", keyword).Boost(2)).
+			Should(ops.Sc.es.Query("bio", keyword).Analyzer("kuromoji").Boost(1)),
 		).
 		Size(limit).From(page * limit).
 		Highlight(elastic.NewHighlight().Field("name")).

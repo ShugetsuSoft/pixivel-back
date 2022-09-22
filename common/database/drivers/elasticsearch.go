@@ -67,8 +67,8 @@ func (es *ElasticSearch) MultiSearch() *elastic.MultiSearchService {
 	return es.cli.MultiSearch()
 }
 
-func (es *ElasticSearch) Query(key string, val interface{}) *elastic.FuzzyQuery {
-	return elastic.NewFuzzyQuery(key, val)
+func (es *ElasticSearch) Query(key string, val interface{}) *elastic.MatchQuery {
+	return elastic.NewMatchQuery(key, val)
 }
 
 func (es *ElasticSearch) TermsQuery(key string, val []string) *elastic.TermsQuery {

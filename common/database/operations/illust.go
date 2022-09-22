@@ -307,12 +307,12 @@ func (ops *DatabaseOperations) SearchTagSuggest(ctx context.Context, keyword str
 func (ops *DatabaseOperations) SearchIllust(ctx context.Context, keyword string, page int, limit int, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, int64, []float64, []*string, error) {
 	query := ops.Sc.es.Search(config.IllustSearchIndexName).
 		Query(ops.Sc.es.BoolQuery().
-			Should(ops.Sc.es.Query("title", keyword).Boost(4)).
-			Should(elastic.NewMatchQuery("title", keyword).Boost(3)).
-			Should(ops.Sc.es.Query("alt_title", keyword).Boost(2)).
+			Should(ops.Sc.es.Query("title", keyword).Analyzer("kuromoji").Boost(4)).
+			Should(elastic.NewMatchQuery("title.keyword", keyword).Boost(3)).
+			Should(ops.Sc.es.Query("alt_title", keyword).Analyzer("kuromoji").Boost(2)).
 			Should(elastic.NewNestedQuery("tags",
-				ops.Sc.es.BoolQuery().Should(ops.Sc.es.Query("tags.name.fuzzy", keyword).Fuzziness(2).Boost(2)).
-					Should(ops.Sc.es.Query("tags.translation.fuzzy", keyword).Fuzziness(2).Boost(1))),
+				ops.Sc.es.BoolQuery().Should(ops.Sc.es.Query("tags.name.fuzzy", keyword).Analyzer("kuromoji").Boost(2)).
+					Should(ops.Sc.es.Query("tags.translation.fuzzy", keyword).Analyzer("kuromoji").Boost(1))),
 			),
 		).
 		Size(limit).From(page * limit).
