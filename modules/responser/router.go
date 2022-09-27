@@ -1,6 +1,7 @@
 package responser
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -48,20 +49,35 @@ func fail(err string) *Response {
 }
 
 func (r *Router) Fail(c *gin.Context, code int, err error) {
-	erra := ""
+	errResp := ""
 	if r.debug {
-		erra = fmt.Sprintf("%s", err)
+		errResp = fmt.Sprintf("%s", err)
 	} else {
-		erra = "服务器酱出错啦！"
+		errResp = func() string {
+			switch err {
+			case models.ErrorNoResult:
+				return "无结果"
+			case models.ErrorItemBanned:
+				return "这是被禁止的！"
+			case models.ErrorRecommendationNotPrepared:
+				return "推荐还没准备好呢！"
+			case models.ErrorRetrivingFinishedTask:
+				return "后台任务失败了。。。呜呜呜"
+			case models.ErrorTimeOut:
+				return "超时！"
+			default:
+				return "服务器酱出错啦！"
+			}
+		}()
 	}
-	logerr := fmt.Sprintf("%s", err)
-	if strings.Contains(logerr, "context canceled") {
-		c.JSON(code, &Response{Error: true, Message: erra, Data: nil})
+
+	if err == context.Canceled {
+		c.JSON(code, &Response{Error: true, Message: errResp, Data: nil})
 		return
 	}
 	realIp := c.ClientIP()
-	telemetry.Log(telemetry.Label{"pos": "ResponseError", "ip": realIp}, logerr)
-	c.JSON(code, &Response{Error: true, Message: erra, Data: nil})
+	telemetry.Log(telemetry.Label{"pos": "ResponseError", "ip": realIp}, fmt.Sprintf("%s", err))
+	c.JSON(code, &Response{Error: true, Message: errResp, Data: nil})
 }
 
 func (r *Router) GetIllustHandler(c *gin.Context) {
@@ -510,6 +526,12 @@ func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
 		}
 		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "illust-recommend"}).Inc()
 		r.Fail(c, 500, err)
+		return
+	}
+
+	if len(illusts) < maxpage*limit {
+		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "illust-recommend"}).Inc()
+		r.Fail(c, 500, models.ErrorRecommendationNotPrepared)
 		return
 	}
 
