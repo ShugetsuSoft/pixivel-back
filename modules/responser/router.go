@@ -1,7 +1,6 @@
 package responser
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -50,6 +49,7 @@ func fail(err string) *Response {
 
 func (r *Router) Fail(c *gin.Context, code int, err error) {
 	errResp := ""
+	report := true
 	if r.debug {
 		errResp = fmt.Sprintf("%s", err)
 	} else {
@@ -59,8 +59,6 @@ func (r *Router) Fail(c *gin.Context, code int, err error) {
 				return "无结果"
 			case models.ErrorItemBanned:
 				return "这是被禁止的！"
-			case models.ErrorRecommendationNotPrepared:
-				return "推荐还没准备好呢！"
 			case models.ErrorRetrivingFinishedTask:
 				return "后台任务失败了。。。呜呜呜"
 			case models.ErrorTimeOut:
@@ -71,12 +69,10 @@ func (r *Router) Fail(c *gin.Context, code int, err error) {
 		}()
 	}
 
-	if err == context.Canceled {
-		c.JSON(code, &Response{Error: true, Message: errResp, Data: nil})
-		return
+	if report {
+		realIp := c.ClientIP()
+		telemetry.Log(telemetry.Label{"pos": "ResponseError", "ip": realIp}, fmt.Sprintf("%s", err))
 	}
-	realIp := c.ClientIP()
-	telemetry.Log(telemetry.Label{"pos": "ResponseError", "ip": realIp}, fmt.Sprintf("%s", err))
 	c.JSON(code, &Response{Error: true, Message: errResp, Data: nil})
 }
 
@@ -502,7 +498,7 @@ func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
 	}
 
 	if page >= maxpage {
-		c.JSON(400, fail("No More Info"))
+		c.JSON(400, fail("没有更多了~"))
 		return
 	}
 
@@ -529,13 +525,11 @@ func (r *Router) RecommendIllustsByIllustIdHandler(c *gin.Context) {
 		return
 	}
 
-	if len(illusts) < maxpage*limit {
-		telemetry.RequestsErrorCount.With(prometheus.Labels{"handler": "illust-recommend"}).Inc()
-		r.Fail(c, 500, models.ErrorRecommendationNotPrepared)
-		return
-	}
-
 	for i := 0; i < maxpage; i++ {
+		if len(illusts) < limit*(i+1) {
+			c.JSON(400, fail("没有更多了~"))
+			return
+		}
 		pagenow := illusts[limit*i : limit*(i+1)]
 		if len(illusts) < limit*(i+2) {
 			err = r.cache.Set("illust-recommend", convert.Illusts2IllustsResponse(pagenow, false), 60*60*2, utils.Itoa(id), utils.Itoa(i))
@@ -593,7 +587,7 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 	}
 
 	if page > 9 {
-		c.JSON(400, fail("No More Info"))
+		c.JSON(400, fail("没了"))
 		return
 	}
 
@@ -612,7 +606,7 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 	}
 
 	if page == 0 && illusts.HasNext == false {
-		c.JSON(400, fail("No More Info"))
+		c.JSON(400, fail("无数据"))
 		return
 	}
 
