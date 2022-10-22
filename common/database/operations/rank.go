@@ -76,7 +76,7 @@ func (ops *DatabaseOperations) QueryRankIllusts(ctx context.Context, mode string
 func (ops *DatabaseOperations) GetSampleIllusts(ctx context.Context, quality int, limit int, resultbanned bool) ([]models.Illust, error) {
 	pipeline := mongo.Pipeline{
 		{{"$sample", bson.D{
-			{"size", limit * limit * limit},
+			{"size", limit * limit},
 		}}},
 		{{"$match", bson.D{
 			{"popularity", bson.D{{"$gt", quality}}},
