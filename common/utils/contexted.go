@@ -18,8 +18,11 @@ func ConfigWrapper(ctx context.Context, config *models.Config) *configCtx {
 }
 
 func (c *configCtx) Value(key interface{}) interface{} {
-	if key.(string) == "config" {
-		return c.val
+	switch s := key.(type) {
+	case string:
+		if s == "config" {
+			return c.val
+		}
 	}
 	return c.Context.Value(key)
 }
