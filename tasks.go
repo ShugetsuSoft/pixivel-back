@@ -5,6 +5,7 @@ import (
 	"flag"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/operations"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/tasktracer"
+	"github.com/ShugetsuSoft/pixivel-back/common/utils"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/config"
 	"github.com/ShugetsuSoft/pixivel-back/modules"
 	"github.com/ShugetsuSoft/pixivel-back/modules/responser/task"
@@ -24,6 +25,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	ctx = utils.ConfigWrapper(ctx, conf)
 
 	db, err := modules.NewDB(conf, ctx)
 	if err != nil {

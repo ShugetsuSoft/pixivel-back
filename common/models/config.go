@@ -1,5 +1,12 @@
 package models
 
+type Modes int
+
+const (
+	NormalMode Modes = iota
+	ArchiveMode
+)
+
 type Config struct {
 	Mongodb       MongoDBConfig       `yaml:"mongodb"`
 	Rabbitmq      RabbitMQConfig      `yaml:"rabbitmq"`
@@ -14,6 +21,7 @@ type Config struct {
 type ResponserConfig struct {
 	Listen string `yaml:"listen"`
 	Debug  bool   `yaml:"debug"`
+	Mode   Modes  `yaml:"mode"`
 }
 
 type SpiderConfig struct {

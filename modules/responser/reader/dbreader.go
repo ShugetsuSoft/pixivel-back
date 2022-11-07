@@ -9,14 +9,19 @@ import (
 )
 
 func (r *Reader) IllustResponse(ctx context.Context, illustId uint64, forcefetch bool) (*models.IllustResponse, error) {
-	retry := 2
+	retry := 1
 START:
 	illust, err := r.dbops.QueryIllust(ctx, illustId, false)
 	if err != nil {
 		return nil, err
 	}
 
+	config := ctx.Value("config").(*models.Config)
+
 	if illust == nil || forcefetch && time.Now().After(illust.UpdateTime.Add(time.Hour*24*2)) {
+		if config.Responser.Mode == models.ArchiveMode {
+			return nil, models.ErrorArchiveMode
+		}
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
@@ -26,6 +31,7 @@ START:
 		}
 		retry--
 		goto START
+
 	}
 
 	userId := uint64(illust.User)
@@ -35,6 +41,9 @@ START:
 	}
 
 	if user == nil {
+		if config.Responser.Mode == models.ArchiveMode {
+			return nil, models.ErrorArchiveMode
+		}
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
@@ -50,14 +59,19 @@ START:
 }
 
 func (r *Reader) UgoiraResponse(ctx context.Context, ugoiraId uint64, forcefetch bool) (*models.UgoiraResponse, error) {
-	retry := 2
+	retry := 1
 START:
 	ugoira, err := r.dbops.QueryUgoira(ctx, ugoiraId)
 	if err != nil {
 		return nil, err
 	}
 
+	config := ctx.Value("config").(*models.Config)
+
 	if ugoira == nil || forcefetch && time.Now().After(ugoira.UpdateTime.Add(time.Hour*24*2)) {
+		if config.Responser.Mode == models.ArchiveMode {
+			return nil, models.ErrorArchiveMode
+		}
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
@@ -97,7 +111,12 @@ START:
 		return nil, err
 	}
 
+	config := ctx.Value("config").(*models.Config)
+
 	if user == nil {
+		if config.Responser.Mode == models.ArchiveMode {
+			return nil, models.ErrorArchiveMode
+		}
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
@@ -113,14 +132,19 @@ START:
 }
 
 func (r *Reader) UserIllustsResponse(ctx context.Context, userId uint64, page int64, limit int64) (*models.IllustsResponse, error) {
-	retry := 2
+	retry := 1
 START:
 	user, err := r.dbops.QueryUser(ctx, userId, false)
 	if err != nil {
 		return nil, err
 	}
 
+	config := ctx.Value("config").(*models.Config)
+
 	if user == nil {
+		if config.Responser.Mode == models.ArchiveMode {
+			return nil, models.ErrorArchiveMode
+		}
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}
@@ -136,7 +160,7 @@ START:
 		goto START
 	}
 
-	if time.Now().After(user.IllustsUpdateTime.Add(time.Hour*24*2)) || user.IllustsCount == 0 {
+	if (time.Now().After(user.IllustsUpdateTime.Add(time.Hour*24*2)) || user.IllustsCount == 0) && config.Responser.Mode != models.ArchiveMode {
 		if retry == 0 {
 			return nil, models.ErrorRetrivingFinishedTask
 		}

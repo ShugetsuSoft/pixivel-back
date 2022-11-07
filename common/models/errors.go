@@ -3,10 +3,11 @@ package models
 import "errors"
 
 var (
-	ErrorRetrivingFinishedTask = errors.New("Error In Retryving Finished Task.")
-	ErrorIndexExist            = errors.New("Error Index Already Existed")
-	ErrorItemBanned            = errors.New("Error Item Banned")
-	ErrorNoResult              = errors.New("Error No Result")
+	ErrorRetrivingFinishedTask = errors.New("error In Retryving Finished Task")
+	ErrorIndexExist            = errors.New("error Index Already Existed")
+	ErrorItemBanned            = errors.New("error Item Banned")
+	ErrorNoResult              = errors.New("error No Result")
 	ErrorChannelClosed         = errors.New("channel closed")
-	ErrorTimeOut               = errors.New("Time Out")
+	ErrorTimeOut               = errors.New("time Out")
+	ErrorArchiveMode           = errors.New("in Archive Mode")
 )
