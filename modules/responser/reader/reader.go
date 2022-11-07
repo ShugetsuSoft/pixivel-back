@@ -10,13 +10,15 @@ import (
 type Reader struct {
 	dbops *operations.DatabaseOperations
 	gen   *task.TaskGenerator
+	mode  models.Modes
 	//shops *operations.SearchOperations
 }
 
-func NewReader(dbops *operations.DatabaseOperations, mq models.MessageQueue, taskchaname string, retrys uint, tracer *tasktracer.TaskTracer) *Reader {
+func NewReader(dbops *operations.DatabaseOperations, mq models.MessageQueue, taskchaname string, retrys uint, tracer *tasktracer.TaskTracer, mode models.Modes) *Reader {
 	gen := task.NewTaskGenerator(mq, taskchaname, retrys, tracer)
 	return &Reader{
 		dbops: dbops,
 		gen:   gen,
+		mode:  mode,
 	}
 }

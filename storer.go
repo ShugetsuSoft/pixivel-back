@@ -5,7 +5,6 @@ import (
 	"flag"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/operations"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/tasktracer"
-	"github.com/ShugetsuSoft/pixivel-back/common/utils"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/config"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
 	"github.com/ShugetsuSoft/pixivel-back/modules"
@@ -27,9 +26,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	ctx = utils.ConfigWrapper(ctx, conf)
-
+	
 	telemetry.RegisterStorer()
 	errchan := telemetry.RunLoki(conf.General.Loki, "responser")
 	go func() {

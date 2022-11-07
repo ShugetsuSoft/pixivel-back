@@ -35,9 +35,9 @@ func success(data interface{}) *Response {
 	return &Response{Error: false, Message: "", Data: data}
 }
 
-func NewRouter(dbops *operations.DatabaseOperations, mq models.MessageQueue, taskchaname string, retrys uint, tracer *tasktracer.TaskTracer, redis *drivers.RedisPool, debugflag bool) *Router {
+func NewRouter(dbops *operations.DatabaseOperations, mq models.MessageQueue, taskchaname string, retrys uint, tracer *tasktracer.TaskTracer, redis *drivers.RedisPool, debugflag bool, mode models.Modes) *Router {
 	return &Router{
-		reader: reader.NewReader(dbops, mq, taskchaname, retrys, tracer),
+		reader: reader.NewReader(dbops, mq, taskchaname, retrys, tracer, mode),
 		cache:  drivers.NewCache(redis),
 		debug:  debugflag,
 	}

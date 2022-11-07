@@ -5,7 +5,6 @@ import (
 	"flag"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/operations"
 	"github.com/ShugetsuSoft/pixivel-back/common/database/tasktracer"
-	"github.com/ShugetsuSoft/pixivel-back/common/utils"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/config"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
 	"github.com/ShugetsuSoft/pixivel-back/modules"
@@ -25,8 +24,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	ctx = utils.ConfigWrapper(ctx, conf)
 
 	telemetry.RegisterResponser()
 	errchan := telemetry.RunLoki(conf.General.Loki, "responser")
@@ -63,7 +60,7 @@ func main() {
 
 	tracer := tasktracer.NewTaskTracer(messageRedis, config.TaskTracerChannel)
 
-	resp := responser.NewResponser(conf.Responser.Listen, ope, mq, config.CrawlTaskQueue, conf.General.SpiderRetry, tracer, cacheRedis, conf.Responser.Debug)
+	resp := responser.NewResponser(conf.Responser.Listen, ope, mq, config.CrawlTaskQueue, conf.General.SpiderRetry, tracer, cacheRedis, conf.Responser.Debug, conf.Responser.Mode)
 
 	err = resp.Run()
 	if err != nil {
