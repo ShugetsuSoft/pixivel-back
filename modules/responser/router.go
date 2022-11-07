@@ -63,6 +63,9 @@ func (r *Router) Fail(c *gin.Context, code int, err error) {
 				return "后台任务失败了。。。呜呜呜"
 			case models.ErrorTimeOut:
 				return "超时！"
+			case models.ErrorArchiveMode:
+				report = false
+				return "全站处于归档模式，暂停抓取"
 			default:
 				return "服务器酱出错啦！"
 			}
