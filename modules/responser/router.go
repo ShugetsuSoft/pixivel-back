@@ -609,7 +609,7 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 	}
 
 	if page == 0 && illusts.HasNext == false {
-		c.JSON(400, fail("无数据"))
+		c.JSON(400, fail("无数据，可能是爬取失败"))
 		return
 	}
 

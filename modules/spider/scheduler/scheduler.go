@@ -71,7 +71,7 @@ func ConstructRequest(task *models.CrawlTask) (string, bool) {
 	case models.CrawlUserIllusts:
 		return apis.UserIllustsG(task.Params["id"]), true
 	case models.CrawlRankIllusts:
-		return apis.RankIllustsG(task.Params["mode"], task.Params["page"], task.Params["date"], task.Params["content"]), true
+		return apis.RankIllustsG(task.Params["mode"], task.Params["page"], task.Params["date"], task.Params["content"]), false
 	case models.CrawlUgoiraDetail:
 		return apis.UgoiraDetailG(task.Params["id"]), true
 	}
