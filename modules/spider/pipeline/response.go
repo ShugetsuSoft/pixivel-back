@@ -29,6 +29,9 @@ func (pipe *Pipeline) Response(r *colly.Response, taskq *scheduler.TaskQueue) {
 					taskq.Reject(ackid)
 					if task.RetryCount > 0 {
 						task.RetryCount -= 1
+						if err == models.InternalErrorLoginNeeded {
+							task.Params["login"] = "1"
+						}
 						taskq.Resend(task, priority)
 					} else {
 						telemetry.SpiderErrorTaskCount.Inc()
@@ -82,6 +85,9 @@ func (pipe *Pipeline) Deal(tasktype uint, rawb []byte, task *models.CrawlTask) (
 		}
 		if raw.Error {
 			return nil, errors.New(raw.Message)
+		}
+		if raw.Body.Urls.Original == "" {
+			return nil, models.InternalErrorLoginNeeded
 		}
 		return convert.IllustRaw2Illust(&raw.Body), nil
 	case models.CrawlUserDetail:

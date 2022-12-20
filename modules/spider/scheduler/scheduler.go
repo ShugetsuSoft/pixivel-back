@@ -33,6 +33,7 @@ func (sch *Scheduler) Schedule(c *colly.Collector, taskq *TaskQueue) error {
 		}
 		uri, needlogin := ConstructRequest(newTask)
 		uhash := storage.GetUrlHash(uri)
+		c.DisableCookies()
 		ctx := colly.NewContext()
 		ctx.Put("Task", newTask)
 		ctx.Put("Priority", priority)
@@ -65,7 +66,11 @@ func (sch *Scheduler) Schedule(c *colly.Collector, taskq *TaskQueue) error {
 func ConstructRequest(task *models.CrawlTask) (string, bool) {
 	switch task.Type {
 	case models.CrawlIllustDetail:
-		return apis.IllustDetailG(task.Params["id"]), false
+		isLogin := false
+		if v, ok := task.Params["login"]; ok && v == "1" {
+			isLogin = true
+		}
+		return apis.IllustDetailG(task.Params["id"]), isLogin
 	case models.CrawlUserDetail:
 		return apis.UserDetailG(task.Params["id"]), false
 	case models.CrawlUserIllusts:

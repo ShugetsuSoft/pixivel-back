@@ -10,4 +10,6 @@ var (
 	ErrorChannelClosed         = errors.New("channel closed")
 	ErrorTimeOut               = errors.New("time Out")
 	ErrorArchiveMode           = errors.New("in Archive Mode")
+
+	InternalErrorLoginNeeded = errors.New("login needed")
 )
