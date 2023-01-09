@@ -450,24 +450,14 @@ func (ops *DatabaseOperations) QueryIllustByUserWithPage(ctx context.Context, us
 }
 
 func (ops *DatabaseOperations) DeleteIllust(ctx context.Context, illustId uint64) error {
-	is, err := ops.Flt.Exists(config.IllustTableName, utils.Itoa(illustId))
-
+	_, err := ops.Cols.Illust.DeleteOne(ctx, bson.M{"_id": illustId})
 	if err != nil {
-		return err
-	}
-
-	if is {
-		_, err := ops.Cols.Illust.DeleteOne(ctx, bson.M{"_id": illustId})
-		if err != nil {
-			if err == mongo.ErrNoDocuments {
-				return nil
-			}
-			return err
+		if err == mongo.ErrNoDocuments {
+			return nil
 		}
 		return err
 	}
-
-	return nil
+	return err
 }
 
 func (ops *DatabaseOperations) IsIllustExist(illustId uint64) (bool, error) {

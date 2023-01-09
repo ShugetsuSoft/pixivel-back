@@ -232,25 +232,14 @@ func (ops *DatabaseOperations) SearchUser(ctx context.Context, keyword string, p
 }
 
 func (ops *DatabaseOperations) DeleteUser(ctx context.Context, userId uint64) error {
-	is, err := ops.Flt.Exists(config.UserTableName, utils.Itoa(userId))
-
+	_, err := ops.Cols.User.DeleteOne(ctx, bson.M{"_id": userId})
 	if err != nil {
-		return err
-	}
-
-	if is {
-		_, err := ops.Cols.User.DeleteOne(ctx, bson.M{"_id": userId})
-		if err != nil {
-			if err == mongo.ErrNoDocuments {
-				return nil
-			}
-			return err
+		if err == mongo.ErrNoDocuments {
+			return nil
 		}
-
 		return err
 	}
-
-	return nil
+	return err
 }
 
 func (ops *DatabaseOperations) ClearUserIllusts(ctx context.Context, userId uint64) error {
