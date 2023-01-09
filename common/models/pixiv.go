@@ -117,3 +117,7 @@ type UgoiraRaw struct {
 	MimeType    string           `json:"mime_type"`
 	Frames      []UgoiraFrameRaw `json:"frames"`
 }
+
+type ErrorRawResponse struct {
+	Message string `json:"message"`
+}

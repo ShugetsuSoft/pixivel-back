@@ -209,8 +209,28 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 			}
 
 		case models.CrawlError:
-			errinfo := data.Response.(string)
-			st.tracer.FailTask(data.Group, errinfo)
+			var errData models.CrawlErrorResponse
+			if err := mapstructure.Decode(data.Response, &errData); err != nil {
+				st.tracer.FailTask(data.Group, err.Error())
+				return err
+			}
+
+			switch errData.Message {
+			case "抱歉，您当前所寻找的个用户已经离开了pixiv, 或者这ID不存在。":
+				err = st.ops.DeleteUser(ctx, utils.Uint64Out([]byte(errData.Params["id"])))
+				if err != nil {
+					st.tracer.FailTask(data.Group, err.Error())
+					return err
+				}
+			case "尚无权限浏览该作品":
+				err = st.ops.DeleteIllust(ctx, utils.Uint64Out([]byte(errData.Params["id"])))
+				if err != nil {
+					st.tracer.FailTask(data.Group, err.Error())
+					return err
+				}
+			}
+
+			st.tracer.FailTask(data.Group, errData.Message)
 			err = dataq.Ack(tag)
 			if err != nil {
 				return err

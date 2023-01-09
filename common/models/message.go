@@ -49,3 +49,9 @@ type CrawlResponse struct {
 	Type     uint
 	Response interface{}
 }
+
+type CrawlErrorResponse struct {
+	TaskType uint
+	Params   map[string]string
+	Message  string
+}

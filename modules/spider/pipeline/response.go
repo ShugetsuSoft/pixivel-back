@@ -35,7 +35,11 @@ func (pipe *Pipeline) Response(r *colly.Response, taskq *scheduler.TaskQueue) {
 						taskq.Resend(task, priority)
 					} else {
 						telemetry.SpiderErrorTaskCount.Inc()
-						pipe.Send(task.Group, models.CrawlError, err.Error(), priority, taskq)
+						pipe.Send(task.Group, models.CrawlError, &models.CrawlErrorResponse{
+							TaskType: task.Type,
+							Params:   task.Params,
+							Message:  err.Error(),
+						}, priority, taskq)
 					}
 				}
 				switch urihash := r.Ctx.GetAny("Uri").(type) {
@@ -68,7 +72,22 @@ func (pipe *Pipeline) Error(r *colly.Response, taskq *scheduler.TaskQueue) {
 					taskq.Resend(task, priority)
 				} else {
 					telemetry.SpiderErrorTaskCount.Inc()
-					pipe.Send(task.Group, models.CrawlError, utils.StringOut(r.Body), priority, taskq)
+					var raw models.ErrorRawResponse
+					err := json.Unmarshal(r.Body, &raw)
+					if err != nil {
+						telemetry.Log(telemetry.Label{"pos": "SipderError"}, err.Error())
+						pipe.Send(task.Group, models.CrawlError, &models.CrawlErrorResponse{
+							TaskType: task.Type,
+							Params:   task.Params,
+							Message:  utils.StringOut(r.Body),
+						}, priority, taskq)
+					} else {
+						pipe.Send(task.Group, models.CrawlError, &models.CrawlErrorResponse{
+							TaskType: task.Type,
+							Params:   task.Params,
+							Message:  raw.Message,
+						}, priority, taskq)
+					}
 				}
 			}
 		}

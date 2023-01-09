@@ -45,11 +45,15 @@ func UintIn(n uint) []byte {
 	return bytebuf.Bytes()
 }
 
-func UintOut(bye []byte) uint {
+func Uint64Out(bye []byte) uint64 {
 	bytebuff := bytes.NewBuffer(bye)
 	var data uint64
 	binary.Read(bytebuff, binary.BigEndian, &data)
-	return uint(data)
+	return data
+}
+
+func UintOut(bye []byte) uint {
+	return uint(Uint64Out(bye))
 }
 
 func Itoa(a interface{}) string {
