@@ -44,7 +44,7 @@ func (tc *TaskTracer) NewTaskGroup(params map[string]string, tasknum uint) (stri
 	if isexist {
 		return tid, true, nil
 	}
-	err = cli.SetValueExpire(tid, utils.Itoa(tasknum), 60 * 10)
+	err = cli.SetValueExpire(tid, utils.Itoa(tasknum), 60*10)
 	if err != nil {
 		return "", false, err
 	}
@@ -173,7 +173,7 @@ func (tl *TaskListener) WaitFor(ctx context.Context, tid string) error {
 				return
 			} else if strings.Contains(tl.finish, tid) {
 				tl.cond.L.Unlock()
-				signal <- errors.New(tl.finish)
+				signal <- errors.New(strings.Split(tl.finish, "-")[2])
 				return
 			}
 			tl.cond.Wait()
