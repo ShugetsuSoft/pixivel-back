@@ -215,13 +215,15 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 			}
 			switch errData.Message {
 			case "抱歉，您当前所寻找的个用户已经离开了pixiv, 或者这ID不存在。":
-				err = st.ops.DeleteUser(ctx, utils.Uint64Out([]byte(errData.Params["id"])))
+				id := utils.Atoi(errData.Params["id"])
+				err = st.ops.DeleteUser(ctx, id)
 				if err != nil {
 					st.tracer.FailTask(data.Group, err.Error())
 					return err
 				}
 			case "尚无权限浏览该作品":
-				err = st.ops.DeleteIllust(ctx, utils.Uint64Out([]byte(errData.Params["id"])))
+				id := utils.Atoi(errData.Params["id"])
+				err = st.ops.DeleteIllust(ctx, id)
 				if err != nil {
 					st.tracer.FailTask(data.Group, err.Error())
 					return err
