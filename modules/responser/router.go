@@ -66,12 +66,15 @@ func (r *Router) Fail(c *gin.Context, code int, err error) {
 			case models.ErrorArchiveMode:
 				report = false
 				return "全站处于归档模式，暂停抓取"
-			case models.PixivErrorIllustDeleted:
-				return "这张很可能已经被删掉了！"
-			case models.PixivErrorUserDeleted:
-				return "这个人好像销号了。。。"
 			default:
-				return "服务器酱出错啦！"
+				switch err.Error() {
+				case "尚无权限浏览该作品":
+					return "这张很可能已经被删掉了！"
+				case "抱歉，您当前所寻找的个用户已经离开了pixiv, 或者这ID不存在。":
+					return "这个人好像销号了。。。"
+				default:
+					return "服务器酱出错啦！"
+				}
 			}
 		}()
 	}
