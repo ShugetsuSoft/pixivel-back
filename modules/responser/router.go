@@ -72,6 +72,8 @@ func (r *Router) Fail(c *gin.Context, code int, err error) {
 					return "这张很可能已经被删掉了！"
 				case "抱歉，您当前所寻找的个用户已经离开了pixiv, 或者这ID不存在。":
 					return "这个人好像销号了。。。"
+				case "Error Visited":
+					return "这个可能不存在"
 				default:
 					return "服务器酱出错啦！"
 				}

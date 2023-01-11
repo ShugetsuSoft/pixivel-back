@@ -40,12 +40,14 @@ func NewSpider(mq models.MessageQueue, inqueue string, outexchange string, login
 		Name:  "PHPSESSID",
 		Value: loginss,
 	}
+
+	pipe := pipeline.NewPipeline(outexchange, storage)
 	return &Spider{
 		mq:      mq,
 		inqueue: inqueue,
 		col:     col,
-		sche:    scheduler.NewScheduler(cookie, storage),
-		pipe:    pipeline.NewPipeline(outexchange, storage),
+		sche:    scheduler.NewScheduler(cookie, storage, pipe),
+		pipe:    pipe,
 	}, nil
 }
 

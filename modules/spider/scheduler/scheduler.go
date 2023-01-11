@@ -5,6 +5,7 @@ import (
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/config"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
 	"github.com/ShugetsuSoft/pixivel-back/modules/spider/apis"
+	"github.com/ShugetsuSoft/pixivel-back/modules/spider/pipeline"
 	"github.com/ShugetsuSoft/pixivel-back/modules/spider/storage"
 	"github.com/gocolly/colly"
 	"net/http"
@@ -13,12 +14,14 @@ import (
 type Scheduler struct {
 	storer *storage.BetterInMemoryStorage
 	cookie *http.Cookie
+	pipe   *pipeline.Pipeline
 }
 
-func NewScheduler(cookie *http.Cookie, storer *storage.BetterInMemoryStorage) *Scheduler {
+func NewScheduler(cookie *http.Cookie, storer *storage.BetterInMemoryStorage, pipe *pipeline.Pipeline) *Scheduler {
 	return &Scheduler{
 		storer: storer,
 		cookie: cookie,
+		pipe:   pipe,
 	}
 }
 
@@ -57,6 +60,12 @@ func (sch *Scheduler) Schedule(c *colly.Collector, taskq *TaskQueue) error {
 						sch.storer.ClearVisited(uhash)
 						taskq.Resend(newTask, priority)
 					}
+				} else {
+					sch.pipe.Send(newTask.Group, models.CrawlError, &models.CrawlErrorResponse{
+						TaskType: newTask.Type,
+						Params:   newTask.Params,
+						Message:  "Error Visited",
+					}, priority, taskq)
 				}
 			}
 		}
