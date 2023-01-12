@@ -46,7 +46,7 @@ func NewSpider(mq models.MessageQueue, inqueue string, outexchange string, login
 		mq:      mq,
 		inqueue: inqueue,
 		col:     col,
-		sche:    scheduler.NewScheduler(cookie, storage, pipe),
+		sche:    scheduler.NewScheduler(cookie, storage, outexchange),
 		pipe:    pipe,
 	}, nil
 }

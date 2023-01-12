@@ -2,26 +2,27 @@ package scheduler
 
 import (
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
+	"github.com/ShugetsuSoft/pixivel-back/common/utils"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/config"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils/telemetry"
 	"github.com/ShugetsuSoft/pixivel-back/modules/spider/apis"
-	"github.com/ShugetsuSoft/pixivel-back/modules/spider/pipeline"
 	"github.com/ShugetsuSoft/pixivel-back/modules/spider/storage"
 	"github.com/gocolly/colly"
+	"log"
 	"net/http"
 )
 
 type Scheduler struct {
-	storer *storage.BetterInMemoryStorage
-	cookie *http.Cookie
-	pipe   *pipeline.Pipeline
+	storer       *storage.BetterInMemoryStorage
+	cookie       *http.Cookie
+	exchangename string
 }
 
-func NewScheduler(cookie *http.Cookie, storer *storage.BetterInMemoryStorage, pipe *pipeline.Pipeline) *Scheduler {
+func NewScheduler(cookie *http.Cookie, storer *storage.BetterInMemoryStorage, exchangename string) *Scheduler {
 	return &Scheduler{
-		storer: storer,
-		cookie: cookie,
-		pipe:   pipe,
+		storer:       storer,
+		cookie:       cookie,
+		exchangename: exchangename,
 	}
 }
 
@@ -61,11 +62,29 @@ func (sch *Scheduler) Schedule(c *colly.Collector, taskq *TaskQueue) error {
 						taskq.Resend(newTask, priority)
 					}
 				} else {
-					sch.pipe.Send(newTask.Group, models.CrawlError, &models.CrawlErrorResponse{
-						TaskType: newTask.Type,
-						Params:   newTask.Params,
-						Message:  "Error Visited",
-					}, priority, taskq)
+					res := models.CrawlResponse{
+						Group: newTask.Group,
+						Type:  models.CrawlError,
+						Response: &models.CrawlErrorResponse{
+							TaskType: newTask.Type,
+							Params:   newTask.Params,
+							Message:  "Error Visited",
+						},
+					}
+					binRes, err := utils.MsgPack(res)
+					if err == nil {
+						err = taskq.Publish(sch.exchangename, models.MQMessage{
+							Data:     binRes,
+							Priority: priority,
+						})
+						if err != nil {
+							telemetry.Log(telemetry.Label{"pos": "SpiderScheduler"}, err.Error())
+							log.Fatal(err)
+						}
+					} else {
+						telemetry.Log(telemetry.Label{"pos": "SpiderScheduler"}, err.Error())
+						log.Fatal(err)
+					}
 				}
 			}
 		}
