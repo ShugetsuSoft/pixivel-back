@@ -30,8 +30,9 @@ func Illust2IllustResponse(illust *models.Illust, user *models.User) *models.Ill
 			Comments:  illust.Statistic.Comments,
 			Views:     illust.Statistic.Views,
 		},
-		User:  userres,
-		Image: illust.Image.Format("2006-01-02T15:04:05"),
+		User:   userres,
+		Image:  illust.Image.Format("2006-01-02T15:04:05"),
+		AIType: illust.AIType,
 	}
 }
 

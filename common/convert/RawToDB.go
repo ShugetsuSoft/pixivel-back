@@ -67,6 +67,7 @@ func IllustRaw2Illust(raw *models.IllustRaw) *models.Illust {
 		Statistic:   sta,
 		Image:       ParseImgTime(raw.Urls.Original),
 		Banned:      IsIllustBanned(raw),
+		AIType:      raw.AIType,
 	}
 }
 

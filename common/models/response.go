@@ -41,6 +41,7 @@ type IllustResponse struct {
 	Statistic   IllustStatisticResponse `json:"statistic"`
 	User        *UserResponse           `json:"user,omitempty"`
 	Image       string                  `json:"image"`
+	AIType      uint                    `json:"aiType"`
 }
 
 type IllustsResponse struct {

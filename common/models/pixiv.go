@@ -35,6 +35,7 @@ type IllustRaw struct {
 	Tags        IllustRawTagPre `json:"tags"`
 	Alt         string          `json:"alt"`
 	UserID      uint            `json:"userId,string"`
+	AIType      uint            `json:"aiType"`
 
 	Width     uint `json:"width"`
 	Height    uint `json:"height"`

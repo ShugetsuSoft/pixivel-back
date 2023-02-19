@@ -51,6 +51,7 @@ type Illust struct {
 	Statistic   IllustStatistic `bson:"statistic"`
 	User        uint            `bson:"user"`
 	Image       time.Time       `bson:"image"`
+	AIType      uint            `bson:"aiType,omitempty"`
 
 	Popularity uint `bson:"popularity"`
 	Banned     bool `bson:"banned"`
