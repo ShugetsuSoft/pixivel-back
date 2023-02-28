@@ -25,6 +25,21 @@ func (ops *DatabaseOperations) InsertRank(ctx context.Context, mode string, date
 	return true, nil
 }
 
+func (ops *DatabaseOperations) IsRankExist(ctx context.Context, mode string, date string, content string) (bool, error) {
+	err := ops.Cols.Rank.FindOne(ctx, bson.M{
+		"date":    date,
+		"mode":    mode,
+		"content": content,
+		"$where":  "this.illusts.length>0",
+	}).Err()
+	if err == mongo.ErrNoDocuments {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (ops *DatabaseOperations) AddRankIllusts(ctx context.Context, mode string, date string, content string, illusts []models.RankIllust) error {
 	filter := bson.M{"date": date, "mode": mode, "content": content}
 	update := bson.M{

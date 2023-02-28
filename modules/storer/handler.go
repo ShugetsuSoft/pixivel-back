@@ -138,6 +138,12 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 				st.tracer.FailTask(data.Group, err.Error())
 				return err
 			}
+			if resdata.Page == 1 {
+				_, err = st.ops.InsertRank(ctx, resdata.Mode, resdata.Date, resdata.Content)
+				if err != nil {
+					return err
+				}
+			}
 			rankIllusts := make([]models.RankIllust, len(resdata.Illusts))
 			for i := range resdata.Illusts {
 				rankIllusts[i].Rank = resdata.Illusts[i].Pos

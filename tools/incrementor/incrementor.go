@@ -20,11 +20,11 @@ func CrawlRank(taskgen *task.TaskGenerator, ope *operations.DatabaseOperations) 
 	today := time.Now().AddDate(0, 0, -2).Format("20060102")
 	for content := range contents {
 		for index := range contents[content] {
-			succ, err := ope.InsertRank(ctx, contents[content][index], today, content)
+			exist, err := ope.IsRankExist(ctx, contents[content][index], today, content)
 			if err != nil {
 				return err
 			}
-			if !succ {
+			if exist {
 				continue
 			}
 			err = taskgen.RankInitTask(ctx, contents[content][index], today, content)
