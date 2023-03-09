@@ -56,26 +56,26 @@ func (r *Router) Fail(c *gin.Context, code int, err error) {
 		errResp = func() string {
 			switch err {
 			case models.ErrorNoResult:
-				return "无结果"
+				return "未返回结果。请检查你所访问的图片链接是否正确。"
 			case models.ErrorItemBanned:
-				return "这是被禁止的！"
+				return "该图片由于违反我们的服务政策被我们禁止访问。此禁止与Pixiv无关。"
 			case models.ErrorRetrivingFinishedTask:
-				return "后台任务失败了。。。呜呜呜"
+				return "后台任务失败。这应该与您没有关系，如果重复出现，请告知我们。"
 			case models.ErrorTimeOut:
-				return "超时！"
+				return "图片信息获取超时。这应该与您没有关系，如果重复出现，请告知我们。"
 			case models.ErrorArchiveMode:
 				report = false
-				return "全站处于归档模式，暂停抓取"
+				return "全站当前处于归档模式。您的访问受限制。"
 			default:
 				switch err.Error() {
 				case "尚无权限浏览该作品":
-					return "这张很可能已经被删掉了！"
+					return "该图片可能曾经存在，但已经被删除。"
 				case "抱歉，您当前所寻找的个用户已经离开了pixiv, 或者这ID不存在。":
-					return "这个人好像销号了。。。"
+					return "该用户可能曾经存在，但已经被删除"
 				case "Error Visited":
-					return "这个可能不存在"
+					return "该图片可能不存在。"
 				default:
-					return "服务器酱出错啦！"
+					return "未知错误。"
 				}
 			}
 		}()
@@ -599,7 +599,7 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 	}
 
 	if page > 9 {
-		c.JSON(400, fail("没了"))
+		c.JSON(400, fail("没有更多了~"))
 		return
 	}
 
@@ -618,7 +618,7 @@ func (r *Router) GetRankHandler(c *gin.Context) {
 	}
 
 	if page == 0 && illusts.HasNext == false {
-		c.JSON(400, fail("无数据，可能是爬取失败"))
+		c.JSON(400, fail("排行榜后台暂无数据，请与维护者联系。"))
 		return
 	}
 
