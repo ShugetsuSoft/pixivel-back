@@ -161,8 +161,8 @@ func (tl *TaskListener) CloseChan() {
 	tl.redis.Close()
 }
 
-func (tl *TaskListener) WaitFor(ctx context.Context, tid string) error {
-	timeout := time.After(1 * time.Minute)
+func (tl *TaskListener) WaitFor(ctx context.Context, tid string, delay time.Duration) error {
+	timeout := time.After(delay)
 	signal := make(chan error, 1)
 	go func() {
 		tl.cond.L.Lock()

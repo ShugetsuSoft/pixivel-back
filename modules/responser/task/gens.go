@@ -3,6 +3,7 @@ package task
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ShugetsuSoft/pixivel-back/common/models"
 	"github.com/ShugetsuSoft/pixivel-back/common/utils"
@@ -28,7 +29,7 @@ func (gen *TaskGenerator) IllustDetailTask(ctx context.Context, id uint64) error
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(ctx, tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid, time.Minute)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err
@@ -55,7 +56,7 @@ func (gen *TaskGenerator) UgoiraDetailTask(ctx context.Context, id uint64) error
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(ctx, tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid, time.Minute)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err
@@ -82,7 +83,7 @@ func (gen *TaskGenerator) UserDetailTask(ctx context.Context, id uint64) error {
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(ctx, tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid, time.Minute)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err
@@ -109,7 +110,7 @@ func (gen *TaskGenerator) UserIllustsTask(ctx context.Context, id uint64) error 
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(ctx, tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid, time.Minute)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err
@@ -135,7 +136,7 @@ func (gen *TaskGenerator) RankInitTask(ctx context.Context, mode string, date st
 			return err
 		}
 	}
-	err = gen.tracerlistener.WaitFor(ctx, tid)
+	err = gen.tracerlistener.WaitFor(ctx, tid, 5*time.Minute)
 	if err != nil {
 		gen.tracer.RemoveTaskGroup(tid)
 		return err
