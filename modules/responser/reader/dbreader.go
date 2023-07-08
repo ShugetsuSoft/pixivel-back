@@ -154,7 +154,7 @@ START:
 
 	if (time.Now().After(user.IllustsUpdateTime.Add(time.Hour*24*2)) || user.IllustsCount == 0) && r.mode != models.ArchiveMode {
 		if retry == 0 {
-			return nil, models.ErrorRetrivingFinishedTask
+			goto END
 		}
 		err = r.gen.UserIllustsTask(ctx, userId)
 		if err != nil {
@@ -164,6 +164,7 @@ START:
 		goto START
 	}
 
+END:
 	illusts, err := r.dbops.QueryIllustByUserWithPage(ctx, userId, page, limit, false)
 	if err != nil {
 		return nil, err
