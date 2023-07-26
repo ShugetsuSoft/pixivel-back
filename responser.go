@@ -60,7 +60,7 @@ func main() {
 
 	tracer := tasktracer.NewTaskTracer(messageRedis, config.TaskTracerChannel)
 
-	resp := responser.NewResponser(conf.Responser.Listen, ope, mq, config.CrawlTaskQueue, conf.General.SpiderRetry, tracer, cacheRedis, conf.Responser.Debug, conf.Responser.Mode)
+	resp := responser.NewResponser(conf.Responser.Listen, ope, mq, config.CrawlTaskQueue, conf.General.SpiderRetry, tracer, cacheRedis, conf.Responser.Debug, conf.Responser.Mode, conf.Responser.EnableForceFetch)
 
 	err = resp.Run()
 	if err != nil {

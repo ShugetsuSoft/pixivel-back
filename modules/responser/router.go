@@ -26,20 +26,22 @@ type Response struct {
 }
 
 type Router struct {
-	reader *reader.Reader
-	cache  *drivers.Cache
-	debug  bool
+	reader           *reader.Reader
+	cache            *drivers.Cache
+	debug            bool
+	enableForceFetch bool
 }
 
 func success(data interface{}) *Response {
 	return &Response{Error: false, Message: "", Data: data}
 }
 
-func NewRouter(dbops *operations.DatabaseOperations, mq models.MessageQueue, taskchaname string, retrys uint, tracer *tasktracer.TaskTracer, redis *drivers.RedisPool, debugflag bool, mode models.Modes) *Router {
+func NewRouter(dbops *operations.DatabaseOperations, mq models.MessageQueue, taskchaname string, retrys uint, tracer *tasktracer.TaskTracer, redis *drivers.RedisPool, debugflag bool, mode models.Modes, enableForceFetch bool) *Router {
 	return &Router{
-		reader: reader.NewReader(dbops, mq, taskchaname, retrys, tracer, mode),
-		cache:  drivers.NewCache(redis),
-		debug:  debugflag,
+		reader:           reader.NewReader(dbops, mq, taskchaname, retrys, tracer, mode),
+		cache:            drivers.NewCache(redis),
+		debug:            debugflag,
+		enableForceFetch: enableForceFetch,
 	}
 }
 
@@ -98,8 +100,10 @@ func (r *Router) GetIllustHandler(c *gin.Context) {
 	}
 
 	forcefetch := false
-	if i, e := strconv.ParseBool(c.Query("forcefetch")); i && e == nil {
-		forcefetch = true
+	if r.enableForceFetch {
+		if i, e := strconv.ParseBool(c.Query("forcefetch")); i && e == nil {
+			forcefetch = true
+		}
 	}
 
 	if !forcefetch {
@@ -138,8 +142,10 @@ func (r *Router) GetUgoiraHandler(c *gin.Context) {
 	}
 
 	forcefetch := false
-	if i, e := strconv.ParseBool(c.Query("forcefetch")); i && e == nil {
-		forcefetch = true
+	if r.enableForceFetch {
+		if i, e := strconv.ParseBool(c.Query("forcefetch")); i && e == nil {
+			forcefetch = true
+		}
 	}
 
 	if !forcefetch {

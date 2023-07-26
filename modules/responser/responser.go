@@ -15,7 +15,7 @@ type Responser struct {
 	addr string
 }
 
-func NewResponser(addr string, dbops *operations.DatabaseOperations, mq models.MessageQueue, taskchaname string, retrys uint, tracer *tasktracer.TaskTracer, redis *drivers.RedisPool, debug bool, modes models.Modes) *Responser {
+func NewResponser(addr string, dbops *operations.DatabaseOperations, mq models.MessageQueue, taskchaname string, retrys uint, tracer *tasktracer.TaskTracer, redis *drivers.RedisPool, debug bool, modes models.Modes, enableForceFetch bool) *Responser {
 	app := gin.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"https://pixivel.moe", "https://beta.pixivel.moe", "https://pixivel.art"},
@@ -26,7 +26,7 @@ func NewResponser(addr string, dbops *operations.DatabaseOperations, mq models.M
 		MaxAge:           12 * time.Hour,
 	}))
 
-	router := NewRouter(dbops, mq, taskchaname, retrys, tracer, redis, debug, modes)
+	router := NewRouter(dbops, mq, taskchaname, retrys, tracer, redis, debug, modes, enableForceFetch)
 	router.mount(app)
 
 	return &Responser{

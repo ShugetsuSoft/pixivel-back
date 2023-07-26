@@ -19,9 +19,10 @@ type Config struct {
 }
 
 type ResponserConfig struct {
-	Listen string `yaml:"listen"`
-	Debug  bool   `yaml:"debug"`
-	Mode   Modes  `yaml:"mode"`
+	Listen           string `yaml:"listen"`
+	Debug            bool   `yaml:"debug"`
+	Mode             Modes  `yaml:"mode"`
+	EnableForceFetch bool   `yaml:"enable-force-fetch"`
 }
 
 type SpiderConfig struct {
