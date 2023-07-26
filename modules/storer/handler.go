@@ -93,6 +93,12 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 				}
 			}
 
+			err = st.ops.UpdateUserIllustsTime(ctx, resdata.UserID)
+			if err != nil {
+				st.tracer.FailTask(data.Group, err.Error())
+				return err
+			}
+
 			if user != nil && illustCount != user.IllustsCount || user == nil {
 				for id := range resdata.Illusts {
 					exist, err := st.ops.IsIllustExist(resdata.Illusts[id])
@@ -121,11 +127,6 @@ func (st *Storer) handleDatabase(dataq *source.DataQueue) error {
 				}
 			}
 
-			err = st.ops.UpdateUserIllustsTime(ctx, resdata.UserID)
-			if err != nil {
-				st.tracer.FailTask(data.Group, err.Error())
-				return err
-			}
 			st.tracer.FinishTask(data.Group)
 			err = dataq.Ack(tag)
 			if err != nil {
