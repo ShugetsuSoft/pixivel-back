@@ -152,7 +152,7 @@ START:
 		goto START
 	}
 
-	if (time.Now().After(user.IllustsUpdateTime.Add(time.Hour*24*2)) || user.IllustsCount == 0) && r.mode != models.ArchiveMode {
+	if (time.Now().After(user.IllustsUpdateTime.Add(time.Hour*24*4)) || user.IllustsCount == 0) && r.mode != models.ArchiveMode {
 		if retry == 0 {
 			goto END
 		}
