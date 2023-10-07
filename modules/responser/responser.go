@@ -19,8 +19,8 @@ func NewResponser(addr string, dbops *operations.DatabaseOperations, mq models.M
 	app := gin.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"https://pixivel.moe", "https://beta.pixivel.moe", "https://pixivel.art"},
-		AllowMethods:     []string{"GET", "POST"},
-		AllowHeaders:     []string{"Origin"},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "User-Agent"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
