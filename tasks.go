@@ -10,6 +10,7 @@ import (
 	"github.com/ShugetsuSoft/pixivel-back/modules/responser/task"
 	"github.com/ShugetsuSoft/pixivel-back/tools/incrementor"
 	"log"
+	"time"
 )
 
 func main() {
@@ -17,7 +18,10 @@ func main() {
 	defer cancel()
 
 	var configPath string
+	var date string
 	flag.StringVar(&configPath, "config", "config.yaml", "Config File Path")
+	flag.StringVar(&date, "date", "", "Specify rank date")
+
 	flag.Parse()
 
 	conf, err := modules.ReadConfig(configPath)
@@ -49,8 +53,16 @@ func main() {
 	ope := operations.NewDatabaseOperations(ctx, db, ft, es, ndb)
 
 	taskgen := task.NewTaskGenerator(mq, config.CrawlTaskQueue, conf.General.SpiderRetry, tracer)
-
-	err = incrementor.CrawlRank(taskgen, ope)
+	var dateobj time.Time
+	if date != "" {
+		dateobj = time.Now().AddDate(0, 0, -2)
+	} else {
+		dateobj, err = time.Parse("20060102", date)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	err = incrementor.CrawlRank(taskgen, ope, dateobj)
 	if err != nil {
 		log.Fatal(err)
 	}

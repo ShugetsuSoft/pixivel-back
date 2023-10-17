@@ -8,7 +8,7 @@ import (
 	"github.com/ShugetsuSoft/pixivel-back/modules/responser/task"
 )
 
-func CrawlRank(taskgen *task.TaskGenerator, ope *operations.DatabaseOperations) error {
+func CrawlRank(taskgen *task.TaskGenerator, ope *operations.DatabaseOperations, date time.Time) error {
 	ctx := context.Background()
 
 	contents := map[string][]string{
@@ -17,7 +17,7 @@ func CrawlRank(taskgen *task.TaskGenerator, ope *operations.DatabaseOperations) 
 		"manga":  {"daily", "weekly", "monthly", "rookie"},
 		"ugoira": {"daily", "weekly"},
 	}
-	today := time.Now().AddDate(0, 0, -2).Format("20060102")
+	today := date.Format("20060102")
 	for content := range contents {
 		for index := range contents[content] {
 			exist, err := ope.IsRankExist(ctx, contents[content][index], today, content)
