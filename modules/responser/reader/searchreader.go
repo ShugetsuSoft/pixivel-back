@@ -59,9 +59,9 @@ func (r *Reader) SearchTagsSuggestResponse(ctx context.Context, keyword string) 
 	}, nil
 }
 
-func (r *Reader) SearchIllustsByTagsResponse(ctx context.Context, musttags []string, shouldtags []string, perfectmatch bool, page int, limit int, sortpopularity bool, sortdate bool) (*models.IllustsResponse, error) {
+func (r *Reader) SearchIllustsByTagsResponse(ctx context.Context, tags []string, perfectmatch bool, page int, limit int, sortpopularity bool, sortdate bool) (*models.IllustsResponse, error) {
 	if perfectmatch {
-		illusts, err := r.dbops.QueryIllustsByTags(ctx, musttags, shouldtags, int64(page), int64(limit), sortpopularity, sortdate, false)
+		illusts, err := r.dbops.QueryIllustsByTags(ctx, tags, int64(page), int64(limit), sortpopularity, sortdate, false)
 		if err != nil {
 			return nil, err
 		}

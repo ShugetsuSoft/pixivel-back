@@ -373,20 +373,14 @@ func (ops *DatabaseOperations) SearchIllust(ctx context.Context, keyword string,
 	return nil, 0, nil, nil, err
 }
 
-func (ops *DatabaseOperations) QueryIllustsByTags(ctx context.Context, musttags []string, shouldtags []string, page int64, limit int64, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, error) {
+func (ops *DatabaseOperations) QueryIllustsByTags(ctx context.Context, tags []string, page int64, limit int64, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, error) {
 	var results []models.Illust
 
-	filter := bson.M{}
-	if len(shouldtags) > 0 {
-		filter["$in"] = shouldtags
-	}
-	if len(musttags) > 0 {
-		filter["$all"] = musttags
-	}
-
 	query := bson.M{
-		"tags.name": filter,
-		"banned":    false,
+		"tags.name": bson.M{
+			"$in": tags,
+		},
+		"banned": false,
 	}
 	if resultbanned {
 		query["banned"] = true

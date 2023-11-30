@@ -408,24 +408,7 @@ func (r *Router) SearchIllustByTagHandler(c *gin.Context) {
 	if keywords == "" {
 		return
 	}
-	twotags := strings.Split(keywords, "|")
-	var musttags []string
-	var shouldtags []string
-	if len(twotags) > 0 {
-		if twotags[0] != "" {
-			musttags = strings.Split(twotags[0], ",")
-		}
-	}
-	if len(twotags) > 1 {
-		if twotags[1] != "" {
-			shouldtags = strings.Split(twotags[1], ",")
-		}
-	}
-
-	if len(musttags) == 0 && len(shouldtags) == 0 {
-		c.JSON(400, fail(fmt.Sprintf("%s", models.ErrorNoResult)))
-		return
-	}
+	tags := strings.Split(keywords, ",")
 
 	page := utils.Atoi(c.Query("page"))
 	if page < 0 {
@@ -452,7 +435,7 @@ func (r *Router) SearchIllustByTagHandler(c *gin.Context) {
 		perfectmatch = false
 	}
 
-	illusts, err := r.reader.SearchIllustsByTagsResponse(ctx, musttags, shouldtags, perfectmatch, int(page), int(limit), sortpop, sortdate)
+	illusts, err := r.reader.SearchIllustsByTagsResponse(ctx, tags, perfectmatch, int(page), int(limit), sortpop, sortdate)
 
 	if err != nil {
 		if err == models.ErrorNoResult {
