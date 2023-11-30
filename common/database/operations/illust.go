@@ -376,11 +376,17 @@ func (ops *DatabaseOperations) SearchIllust(ctx context.Context, keyword string,
 func (ops *DatabaseOperations) QueryIllustsByTags(ctx context.Context, tags []string, page int64, limit int64, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, error) {
 	var results []models.Illust
 
+	var filter interface{}
+
+	if len(tags) > 1 {
+		filter = bson.M{"$in": tags}
+	} else {
+		filter = tags[0]
+	}
+
 	query := bson.M{
-		"tags.name": bson.M{
-			"$in": tags,
-		},
-		"banned": false,
+		"tags.name": filter,
+		"banned":    false,
 	}
 	if resultbanned {
 		query["banned"] = true
