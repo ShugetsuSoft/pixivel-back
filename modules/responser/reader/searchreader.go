@@ -61,7 +61,7 @@ func (r *Reader) SearchTagsSuggestResponse(ctx context.Context, keyword string) 
 
 func (r *Reader) SearchIllustsByTagsResponse(ctx context.Context, tags []string, perfectmatch bool, page int, limit int, sortpopularity bool, sortdate bool) (*models.IllustsResponse, error) {
 	if perfectmatch {
-		illusts, err := r.dbops.QueryIllustsByTags(ctx, tags, int64(page), int64(limit), sortpopularity, sortdate, false)
+		illusts, err := r.dbops.QueryIllustsByTags(ctx, tags, page, limit, sortpopularity, sortdate, false)
 		if err != nil {
 			return nil, err
 		}

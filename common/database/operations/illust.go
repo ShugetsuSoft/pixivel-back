@@ -373,42 +373,73 @@ func (ops *DatabaseOperations) SearchIllust(ctx context.Context, keyword string,
 	return nil, 0, nil, nil, err
 }
 
-func (ops *DatabaseOperations) QueryIllustsByTags(ctx context.Context, tags []string, page int64, limit int64, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, error) {
-	var results []models.Illust
-
-	var filter interface{}
-
-	if len(tags) > 1 {
-		filter = bson.M{"$in": tags}
-	} else {
-		filter = tags[0]
+func (ops *DatabaseOperations) QueryIllustsByTags(ctx context.Context, tags []string, page int, limit int, sortpopularity bool, sortdate bool, resultbanned bool) ([]models.Illust, error) {
+	/*
+		{
+		  "query": {
+		    "nested": {
+		      "path": "tags",
+		      "query": {
+		        "bool": {
+		          "must": [
+		            {
+		              "match": {
+		                "tags.name.fuzzy": "<TAG>"
+		              }
+		            },
+		          ]
+		        }
+		      }
+		    }
+		  }
+		}
+	*/
+	tagQuires := make([]elastic.Query, len(tags))
+	for i, tag := range tags {
+		tagQuires[i] = elastic.NewMatchQuery("tags.name.fuzzy", tag)
 	}
+	query := ops.Sc.es.Search(config.IllustSearchIndexName).Query(
+		elastic.NewNestedQuery("tags", elastic.NewBoolQuery().Must(tagQuires...)),
+	).Size(limit).From(page * limit).FetchSourceContext(elastic.NewFetchSourceContext(true).Include("_id"))
 
-	query := bson.M{
-		"tags.name": filter,
-		"banned":    false,
-	}
-	if resultbanned {
-		query["banned"] = true
-	}
-	opts := options.Find().SetLimit(limit).SetSkip(page * limit)
 	if sortpopularity {
-		opts = opts.SetSort(bson.M{"popularity": -1})
+		query = query.Sort("popularity", false)
 	}
 	if sortdate {
-		opts = opts.SetSort(bson.M{"createDate": -1})
+		query = query.Sort("create_date", false)
 	}
 
-	cursor, err := ops.Cols.Illust.Find(ctx, query, opts)
+	results, err := ops.Sc.es.DoSearch(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = cursor.All(ctx, &results); err != nil {
-		return nil, err
-	}
+	if results.Hits.TotalHits.Value > 0 {
+		illustids := make([]uint64, len(results.Hits.Hits))
+		for i, hit := range results.Hits.Hits {
+			illustids[i] = utils.Atoi(hit.Id)
+		}
 
-	return results, nil
+		illusts, err := ops.QueryIllusts(ctx, illustids, resultbanned)
+		if err != nil {
+			return nil, err
+		}
+
+		illustsmap := make(map[uint64]models.Illust)
+		for _, illust := range illusts {
+			illustsmap[illust.ID] = illust
+		}
+
+		result := make([]models.Illust, 0, len(results.Hits.Hits))
+		for _, illustid := range illustids {
+			if _, exist := illustsmap[illustid]; exist {
+				result = append(result, illustsmap[illustid])
+			}
+		}
+
+		return result, nil
+	}
+	return nil, models.ErrorNoResult
 }
 
 func (ops *DatabaseOperations) QueryIllustByUser(ctx context.Context, userId uint64, resultbanned bool) ([]models.Illust, error) {
