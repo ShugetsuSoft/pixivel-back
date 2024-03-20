@@ -251,6 +251,10 @@ func (r *Router) GetUserIllustsHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchIllustHandler(c *gin.Context) {
+	c.JSON(500, gin.H{
+		"error": "暂时不可用",
+	})
+
 	ctx := c.Request.Context()
 
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-illust"}).Inc()
@@ -295,6 +299,10 @@ func (r *Router) SearchIllustHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchIllustSuggestHandler(c *gin.Context) {
+	c.JSON(500, gin.H{
+		"error": "暂时不可用",
+	})
+
 	ctx := c.Request.Context()
 
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-illust-suggest"}).Inc()
@@ -319,6 +327,10 @@ func (r *Router) SearchIllustSuggestHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchUserHandler(c *gin.Context) {
+	c.JSON(500, gin.H{
+		"error": "暂时不可用",
+	})
+
 	ctx := c.Request.Context()
 
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-user"}).Inc()
@@ -353,6 +365,10 @@ func (r *Router) SearchUserHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchUserSuggestHandler(c *gin.Context) {
+	c.JSON(500, gin.H{
+		"error": "暂时不可用",
+	})
+
 	ctx := c.Request.Context()
 
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-user-suggest"}).Inc()
@@ -377,6 +393,10 @@ func (r *Router) SearchUserSuggestHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchTagSuggestHandler(c *gin.Context) {
+	c.JSON(500, gin.H{
+		"error": "暂时不可用",
+	})
+
 	ctx := c.Request.Context()
 
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-tag-suggest"}).Inc()
@@ -401,6 +421,10 @@ func (r *Router) SearchTagSuggestHandler(c *gin.Context) {
 }
 
 func (r *Router) SearchIllustByTagHandler(c *gin.Context) {
+	c.JSON(500, gin.H{
+		"error": "暂时不可用",
+	})
+
 	ctx := c.Request.Context()
 
 	telemetry.RequestsCount.With(prometheus.Labels{"handler": "search-illust-by-tag"}).Inc()
