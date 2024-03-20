@@ -254,6 +254,7 @@ func (r *Router) SearchIllustHandler(c *gin.Context) {
 	c.JSON(500, gin.H{
 		"error": "暂时不可用",
 	})
+	return
 
 	ctx := c.Request.Context()
 
@@ -302,6 +303,7 @@ func (r *Router) SearchIllustSuggestHandler(c *gin.Context) {
 	c.JSON(500, gin.H{
 		"error": "暂时不可用",
 	})
+	return
 
 	ctx := c.Request.Context()
 
@@ -330,6 +332,7 @@ func (r *Router) SearchUserHandler(c *gin.Context) {
 	c.JSON(500, gin.H{
 		"error": "暂时不可用",
 	})
+	return
 
 	ctx := c.Request.Context()
 
@@ -368,6 +371,7 @@ func (r *Router) SearchUserSuggestHandler(c *gin.Context) {
 	c.JSON(500, gin.H{
 		"error": "暂时不可用",
 	})
+	return
 
 	ctx := c.Request.Context()
 
@@ -396,6 +400,7 @@ func (r *Router) SearchTagSuggestHandler(c *gin.Context) {
 	c.JSON(500, gin.H{
 		"error": "暂时不可用",
 	})
+	return
 
 	ctx := c.Request.Context()
 
@@ -424,6 +429,7 @@ func (r *Router) SearchIllustByTagHandler(c *gin.Context) {
 	c.JSON(500, gin.H{
 		"error": "暂时不可用",
 	})
+	return
 
 	ctx := c.Request.Context()
 
