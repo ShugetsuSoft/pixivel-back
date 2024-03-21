@@ -52,6 +52,7 @@ func (es *ElasticSearch) InsertDocument(ctx context.Context, index string, id st
 		Index(index).
 		Id(id).
 		BodyJson(object).
+		OpType("index").
 		Do(ctx)
 	if err != nil {
 		return err
